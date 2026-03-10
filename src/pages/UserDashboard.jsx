@@ -336,14 +336,21 @@ export default function UserDashboard({ setShowAdminPanel }) {
   });
 
   const generateCalendarLinks = (event) => {
+    if (!event?.date?.seconds || !event?.timeRange) return {};
+
     const title = encodeURIComponent(event.name);
     const location = encodeURIComponent(event.location || "");
     const description = encodeURIComponent(event.description || "");
-    const start = new Date(event.date?.seconds * 1000);
-    const [startHour, endHour] = event.timeRange?.split("–") || ["", ""];
+    const start = new Date(event.date.seconds * 1000);
+    const normalized = event.timeRange.replace(/[-–—]/g, "|");
+    const [startHour, endHour] = normalized.split("|").map(t => t?.trim());
 
-    const startDateTime = new Date(`${start.toDateString()} ${startHour.trim()}`);
-    const endDateTime = new Date(`${start.toDateString()} ${endHour.trim()}`);
+    if (!startHour || !endHour) return {};
+
+    const startDateTime = new Date(`${start.toDateString()} ${startHour}`);
+    const endDateTime = new Date(`${start.toDateString()} ${endHour}`);
+
+    if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) return {};
 
     const format = (d) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
     const dates = `${format(startDateTime)}/${format(endDateTime)}`;
@@ -351,7 +358,7 @@ export default function UserDashboard({ setShowAdminPanel }) {
     const google = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${description}&location=${location}&sf=true&output=xml`;
     const ics = `data:text/calendar;charset=utf8,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ASUMMARY:${title}%0ADESCRIPTION:${description}%0ALOCATION:${location}%0ADTSTART:${format(startDateTime)}%0ADTEND:${format(endDateTime)}%0AEND:VEVENT%0AEND:VCALENDAR`;
 
-    return { google, ics, outlook: ics }; // Outlook uses downloadable .ics file
+    return { google, ics, outlook: ics };
   };
 
 

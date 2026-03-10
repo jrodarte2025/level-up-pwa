@@ -360,7 +360,7 @@ export default function AdminPanel({ tab }) {
     let startTimeString = "";
     let endTimeString = "";
     if (event.timeRange) {
-      const [start, end] = event.timeRange.split("–").map(s => s.trim());
+      const [start, end] = event.timeRange.replace(/[-–—]/g, "|").split("|").map(s => s?.trim());
       // Convert "2:00 PM" to "14:00" etc for input type="time"
       const to24Hour = (ampm) => {
         if (!ampm) return "";

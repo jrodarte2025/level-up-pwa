@@ -39,13 +39,21 @@ export default function EventCard({
   const imageUrl = headerImage || "https://via.placeholder.com/400x225?text=Event";
 
   const generateCalendarLinks = () => {
+    if (!date?.seconds || !timeRange) return {};
+
     const title = encodeURIComponent(name);
     const locationStr = encodeURIComponent(location || "");
     const descriptionStr = encodeURIComponent(description || "");
-    const start = new Date(date?.seconds * 1000);
-    const [startHour, endHour] = timeRange?.split("–") || ["", ""];
-    const startDateTime = new Date(`${start.toDateString()} ${startHour.trim()}`);
-    const endDateTime = new Date(`${start.toDateString()} ${endHour.trim()}`);
+    const start = new Date(date.seconds * 1000);
+    const normalized = timeRange.replace(/[-–—]/g, "|");
+    const [startHour, endHour] = normalized.split("|").map(t => t?.trim());
+
+    if (!startHour || !endHour) return {};
+
+    const startDateTime = new Date(`${start.toDateString()} ${startHour}`);
+    const endDateTime = new Date(`${start.toDateString()} ${endHour}`);
+
+    if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) return {};
 
     const format = (d) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
     const dates = `${format(startDateTime)}/${format(endDateTime)}`;
