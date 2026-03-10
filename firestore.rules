@@ -1,71 +1,129 @@
 rules_version = '2';
+
+// ══════════════════════════════════════════════════════════════════
+// CANONICAL MERGED FIRESTORE SECURITY RULES
+// Deployed from Level-Up-App/ only. Native app rules are reference
+// copies -- do NOT deploy from LevelUp-Fresh/.
+//
+// Merges PWA rules + native app rules into a single superset.
+// All native app operations continue to work. PWA admin overrides,
+// notification tokens, and validation helpers are added back.
+// ══════════════════════════════════════════════════════════════════
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to validate phone number format
+    // ── Helper: validate phone number format ───────────────────
     function isValidPhoneNumber(phone) {
       return phone == '' || phone.matches('^[0-9]{10}');
     }
 
-    // ADMIN CHECK - Updated to check isAdmin field
+    // ── Helper: check if authenticated user is an admin ────────
+    // Dual check: supports both isAdmin field (native app) and
+    // role field (PWA) for backward compatibility.
     function isAdmin() {
       let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       return userData.isAdmin == true || userData.role == "admin";
     }
 
-    // USERS
+    // ── Users ──────────────────────────────────────────────────
+    // Anyone authenticated can read the directory.
+    // Users can write their own profile (with phone validation).
+    // Admins can write any profile. Admins can delete users.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if (request.auth.uid == userId || isAdmin()) &&
         (!('phoneNumber' in request.resource.data) ||
          isValidPhoneNumber(request.resource.data.phoneNumber));
-      allow delete: if isAdmin(); // Added explicit delete rule for admins
+      allow delete: if isAdmin();
     }
 
-    // NOTIFICATION TOKENS
+    // ── Notification Tokens ────────────────────────────────────
+    // Users can read/write only their own push notification tokens.
+    // (Native app omitted this collection -- required for PWA push notifications.)
     match /notification_tokens/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // POSTS
+    // ── Posts ───────────────────────────────────────────────────
+    // All authenticated users can read posts.
+    // Only admins can create, update, or delete posts.
     match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
-      // COMMENTS on posts
+      allow read:   if request.auth != null;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+
+      // Comments subcollection
+      // Uses native app's timestamp validation and 10-second rate limiting
+      // (security improvements that benefit both apps).
+      // NOTE: PWA code must set timestamp: serverTimestamp() for comment
+      // creation to work.
       match /comments/{commentId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth.uid == request.resource.data.userId;
-        allow delete: if request.auth.uid == resource.data.userId;
-        // REACTIONS on comments
+        allow read:   if request.auth != null;
+        allow create: if request.auth != null
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.timestamp == request.time
+          && (
+            !('lastCommentAt' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data)
+            || request.time >= get(/databases/$(database)/documents/users/$(request.auth.uid)).data.lastCommentAt + duration.value(10, 's')
+          );
+        // Users can delete their own comments
+        allow delete: if request.auth != null
+                      && resource.data.userId == request.auth.uid;
+
+        // Reactions on comments
         match /reactions/{reactionId} {
-          allow read: if request.auth != null;
-          allow write: if request.auth.uid == reactionId;
-          allow delete: if request.auth.uid == reactionId;
+          allow read:   if request.auth != null;
+          allow create: if request.auth != null;
+          allow delete: if request.auth != null
+                        && resource.data.userId == request.auth.uid;
         }
       }
-      // REACTIONS on posts
+
+      // Reactions subcollection (on posts directly)
       match /reactions/{reactionId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth.uid == reactionId;
-        allow delete: if request.auth.uid == reactionId;
+        allow read:   if request.auth != null;
+        allow create: if request.auth != null;
+        allow delete: if request.auth != null
+                      && resource.data.userId == request.auth.uid;
       }
     }
 
-    // MATCHES
-    match /matches/{matchId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // EVENTS
+    // ── Events ─────────────────────────────────────────────────
     match /events/{eventId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read:   if request.auth != null;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
-    // RESOURCES
+    // ── RSVPs ──────────────────────────────────────────────────
+    // Regular users: rate-limited RSVP creation (5-second cooldown).
+    // Admins: bypass rate limiting for RSVP management via admin panel.
+    // Only RSVP owner or admin can update/delete.
+    match /rsvps/{rsvpId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && (
+          // Regular users: must be RSVP owner with rate limiting
+          (request.resource.data.userId == request.auth.uid
+            && (
+              !('lastRsvpAt' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data)
+              || request.time >= get(/databases/$(database)/documents/users/$(request.auth.uid)).data.lastRsvpAt + duration.value(5, 's')
+            )
+          )
+          // Admins: bypass rate limiting
+          || isAdmin()
+        );
+      allow update: if request.auth != null
+                    && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null
+                    && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ── Resources ──────────────────────────────────────────────
+    // Authenticated users can read. Admins can write with role validation.
     match /resources/{resourceId} {
       allow read: if request.auth != null;
       allow write: if isAdmin() && isValidRoles();
@@ -77,21 +135,27 @@ service cloud.firestore {
       }
     }
 
-    // RSVPS
-    match /rsvps/{rsvpId} {
+    // ── Matches ────────────────────────────────────────────────
+    // Authenticated users can read. Admins can write (includes update
+    // needed by PWA) and delete.
+    match /matches/{matchId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null &&
-        (request.resource.data.userId == request.auth.uid || isAdmin());
-      allow delete: if request.auth != null &&
-        (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // REGISTRATION CODES
+    // ── Registration Codes ─────────────────────────────────────
+    // Admin-only read AND write. PWA signup disabled -- new users
+    // register through native app only. Code validation happens
+    // server-side via callable function.
     match /registrationCodes/{codeId} {
-      allow read: if true; // Allow public read access for signup validation
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    // Allow collection listing for signed-in users
+    // ── Wildcard Catch-All ─────────────────────────────────────
+    // Allows collection listing for authenticated PWA queries.
+    // Required for PWA to enumerate collections it has access to.
     match /{document=**} {
       allow list: if request.auth != null;
     }
