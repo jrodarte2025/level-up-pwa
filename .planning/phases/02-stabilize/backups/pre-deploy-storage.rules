@@ -1,0 +1,35 @@
+// Pre-deployment backup -- 2026-03-10
+// Snapshot of live Storage rules before deploying merged rules from Plan 02-01.
+// Redeploy this file to rollback: copy to repo root as storage.rules, then
+// run `firebase deploy --only storage`
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // User profile images: users/{userId}/profile.jpg
+    match /users/{userId}/{allPaths=**} {
+      // Any authenticated user can read profile images (needed for directory, profiles)
+      allow read: if request.auth != null;
+
+      // Only the user themselves can upload their own profile image
+      // Enforce file type (JPEG, PNG, WebP only) and size (5 MB max)
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Event header images: events/{eventId}/header.jpg
+    match /events/{eventId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Default: deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

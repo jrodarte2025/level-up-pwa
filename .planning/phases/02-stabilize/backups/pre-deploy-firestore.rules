@@ -1,0 +1,114 @@
+// Pre-deployment backup -- 2026-03-10
+// Snapshot of live Firestore rules before deploying merged rules from Plan 02-01.
+// Redeploy this file to rollback: copy to repo root as firestore.rules, then
+// run `firebase deploy --only firestore:rules`
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper: check if authenticated user is an admin ──────
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // ── Users ────────────────────────────────────────────────
+    // Anyone authenticated can read the directory;
+    // users can only write their own profile.
+    match /users/{userId} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── Posts ─────────────────────────────────────────────────
+    // All authenticated users can read posts.
+    // Only admins can create, update, or delete posts.
+    match /posts/{postId} {
+      allow read:   if request.auth != null;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read:   if request.auth != null;
+        allow create: if request.auth != null
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.timestamp == request.time
+          && (
+            !('lastCommentAt' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data)
+            || request.time >= get(/databases/$(database)/documents/users/$(request.auth.uid)).data.lastCommentAt + duration.value(10, 's')
+          );
+        // Users can delete their own comments
+        allow delete: if request.auth != null
+                      && resource.data.userId == request.auth.uid;
+
+        // Reactions on comments
+        match /reactions/{reactionId} {
+          allow read:   if request.auth != null;
+          allow create: if request.auth != null;
+          allow delete: if request.auth != null
+                        && resource.data.userId == request.auth.uid;
+        }
+      }
+
+      // Reactions subcollection (on posts directly)
+      match /reactions/{reactionId} {
+        allow read:   if request.auth != null;
+        allow create: if request.auth != null;
+        allow delete: if request.auth != null
+                      && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // ── Events ───────────────────────────────────────────────
+    match /events/{eventId} {
+      allow read:   if request.auth != null;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── RSVPs ────────────────────────────────────────────────
+    // Any authenticated user can create an RSVP, with 5-second rate limiting.
+    // Only the RSVP owner can update or delete their RSVP.
+    match /rsvps/{rsvpId} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && (
+          !('lastRsvpAt' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data)
+          || request.time >= get(/databases/$(database)/documents/users/$(request.auth.uid)).data.lastRsvpAt + duration.value(5, 's')
+        );
+      allow update: if request.auth != null
+                    && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Resources ────────────────────────────────────────────
+    match /resources/{resourceId} {
+      allow read:   if request.auth != null;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Matches ──────────────────────────────────────────────
+    match /matches/{matchId} {
+      allow read:   if request.auth != null;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Registration Codes ───────────────────────────────────
+    // Any authenticated user can read (for client-side validation during registration).
+    // Only admins can create/modify codes.
+    match /registrationCodes/{codeId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}
