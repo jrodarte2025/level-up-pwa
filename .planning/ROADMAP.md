@@ -41,11 +41,11 @@ Plans:
   3. The Salesforce integration pulls user photos correctly
   4. A canonical `storage.rules` file exists in the PWA repo, is tracked in `firebase.json`, and is deployed from `Level-Up-App/` only
   5. All deployed rule changes have been validated against native app compatibility before going live
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: Merge Firestore rules and create canonical storage.rules
-- [ ] 02-02: Deploy merged rules and verify RSVP flow and external integrations
+- [ ] 02-01-PLAN.md — Merge Firestore rules (11 divergences) and create canonical storage.rules with public profile photo read
+- [ ] 02-02-PLAN.md — Back up live rules, deploy merged rules to production, Jim verifies RSVP + photo integrations
 
 ### Phase 3: Transition
 **Goal**: PWA users can discover and download the native app, and the deployment protocol prevents future rule collisions
@@ -68,6 +68,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Diagnose | 0/1 | Not started | - |
-| 2. Stabilize | 0/2 | Not started | - |
+| 1. Diagnose | 1/1 | Complete | 2026-03-10 |
+| 2. Stabilize | 0/2 | Planning complete | - |
 | 3. Transition | 0/2 | Not started | - |
