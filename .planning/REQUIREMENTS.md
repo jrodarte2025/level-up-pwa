@@ -13,11 +13,11 @@
 
 ### Firebase Rules
 
-- [ ] **RULE-01**: Create canonical `storage.rules` file in PWA repo, registered in `firebase.json`
-- [ ] **RULE-02**: Merge Firestore rules to work for both PWA and native app simultaneously
-- [ ] **RULE-03**: Restore public read access on Storage paths used by external photo embeds
-- [ ] **RULE-04**: Restore `registrationCodes` public read access (required for signup flow)
-- [ ] **RULE-05**: Restore RSVP write permissions and admin override
+- [x] **RULE-01**: Create canonical `storage.rules` file in PWA repo, registered in `firebase.json`
+- [x] **RULE-02**: Merge Firestore rules to work for both PWA and native app simultaneously
+- [x] **RULE-03**: Restore public read access on Storage paths used by external photo embeds
+- [x] **RULE-04**: Restore `registrationCodes` public read access (required for signup flow)
+- [x] **RULE-05**: Restore RSVP write permissions and admin override
 - [ ] **RULE-06**: Validate all rule changes against native app compatibility before deploying
 
 ### External Integrations
@@ -63,11 +63,11 @@
 | DIAG-01 | Phase 1 | Complete |
 | DIAG-02 | Phase 1 | Complete |
 | DIAG-03 | Phase 1 | Complete |
-| RULE-01 | Phase 2 | Pending |
-| RULE-02 | Phase 2 | Pending |
-| RULE-03 | Phase 2 | Pending |
-| RULE-04 | Phase 2 | Pending |
-| RULE-05 | Phase 2 | Pending |
+| RULE-01 | Phase 2 | Complete |
+| RULE-02 | Phase 2 | Complete |
+| RULE-03 | Phase 2 | Complete |
+| RULE-04 | Phase 2 | Complete |
+| RULE-05 | Phase 2 | Complete |
 | RULE-06 | Phase 2 | Pending |
 | INTG-01 | Phase 2 | Pending |
 | INTG-02 | Phase 2 | Pending |
