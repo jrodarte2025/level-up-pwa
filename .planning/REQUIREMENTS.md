@@ -7,9 +7,9 @@
 
 ### Diagnosis
 
-- [ ] **DIAG-01**: Diff live Firestore rules against both codebases' rule files to identify all divergences
-- [ ] **DIAG-02**: Diff live Storage rules against both codebases to identify access changes
-- [ ] **DIAG-03**: Document all rule changes and their impact on PWA, external integrations, and native app
+- [x] **DIAG-01**: Diff live Firestore rules against both codebases' rule files to identify all divergences
+- [x] **DIAG-02**: Diff live Storage rules against both codebases to identify access changes
+- [x] **DIAG-03**: Document all rule changes and their impact on PWA, external integrations, and native app
 
 ### Firebase Rules
 
@@ -60,9 +60,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIAG-01 | Phase 1 | Pending |
-| DIAG-02 | Phase 1 | Pending |
-| DIAG-03 | Phase 1 | Pending |
+| DIAG-01 | Phase 1 | Complete |
+| DIAG-02 | Phase 1 | Complete |
+| DIAG-03 | Phase 1 | Complete |
 | RULE-01 | Phase 2 | Pending |
 | RULE-02 | Phase 2 | Pending |
 | RULE-03 | Phase 2 | Pending |
