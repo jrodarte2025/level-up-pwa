@@ -26,10 +26,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Live Firestore rules have been captured and diffed against both the PWA repo and native app repo versions — divergences are documented
   2. Live Storage rules have been captured and diffed against both codebases — the storage access change is identified and documented
   3. A written summary exists mapping each reported symptom (blank RSVP screen, 403 photo errors) to a specific rule or config change
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 01-01: Capture live Firebase rules and produce side-by-side diff across all three versions
+- [ ] 01-01-PLAN.md — Fetch live Firebase rules, diff against both codebases, produce DIAGNOSIS.md with root cause mapping
 
 ### Phase 2: Stabilize
 **Goal**: PWA event registration works and external photo integrations (Squarespace, Salesforce) return photos
