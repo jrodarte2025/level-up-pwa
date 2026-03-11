@@ -13,7 +13,7 @@ The PWA broke when the native app's Firebase rules overwrote production without 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Diagnose** - Read live Firebase state and confirm root cause before touching anything
-- [ ] **Phase 2: Stabilize** - Merge Firebase rules and restore PWA event registration and external photo integrations
+- [x] **Phase 2: Stabilize** - Merge Firebase rules and restore PWA event registration and external photo integrations (completed 2026-03-11)
 - [ ] **Phase 3: Transition** - Build download banner and document the path from PWA to native app
 
 ## Phase Details
@@ -41,7 +41,7 @@ Plans:
   3. The Salesforce integration pulls user photos correctly
   4. A canonical `storage.rules` file exists in the PWA repo, is tracked in `firebase.json`, and is deployed from `Level-Up-App/` only
   5. All deployed rule changes have been validated against native app compatibility before going live
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 02-01-PLAN.md — Merge Firestore rules (11 divergences) and create canonical storage.rules with public profile photo read
@@ -69,5 +69,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Diagnose | 1/1 | Complete | 2026-03-10 |
-| 2. Stabilize | 0/2 | Planning complete | - |
+| 2. Stabilize | 2/2 | Complete   | 2026-03-11 |
 | 3. Transition | 0/2 | Not started | - |

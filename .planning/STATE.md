@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-10T23:37:16.007Z"
-last_activity: 2026-03-10 — Roadmap created, project initialized
+status: completed
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-11T00:00:18.150Z"
+last_activity: 2026-03-10 -- Deployed and verified merged Firebase rules
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** The PWA must continue working reliably until users have migrated to the native app. No fix can break the new native app.
-**Current focus:** Phase 2 — Stabilize
+**Current focus:** Phase 2 complete -- ready for Phase 3 (Transition)
 
 ## Current Position
 
-Phase: 2 of 3 (Stabilize)
-Plan: 1 of 2 in current phase
-Status: Plan 02-01 complete, ready for 02-02
-Last activity: 2026-03-10 — Merged Firebase rules created
+Phase: 2 of 3 (Stabilize) -- COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase 02-stabilize complete, ready for Phase 03
+Last activity: 2026-03-10 -- Deployed and verified merged Firebase rules
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [███████░░░] 67%
 *Updated after each plan completion*
 | Phase 01-diagnose P01 | 4min | 2 tasks | 1 files |
 | Phase 02 P01 | 2min | 2 tasks | 3 files |
+| Phase 02 P02 | 15min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,7 @@ Recent decisions affecting current work:
 - [Phase 02]: RSVP rate limiting codified from live-only orphaned rules with admin bypass
 - [Phase 02]: Profile photo Storage paths get public read; event images stay auth-required
 - [Phase 02]: registrationCodes locked to admin-only read/write per user decision
+- [Phase 02]: PWA generateCalendarLinks() normalized to handle all dash variants from native app events
 
 ### Pending Todos
 
@@ -84,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T23:37:15.999Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-11T00:00:18.145Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

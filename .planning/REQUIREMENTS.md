@@ -18,13 +18,13 @@
 - [x] **RULE-03**: Restore public read access on Storage paths used by external photo embeds
 - [x] **RULE-04**: Restore `registrationCodes` public read access (required for signup flow)
 - [x] **RULE-05**: Restore RSVP write permissions and admin override
-- [ ] **RULE-06**: Validate all rule changes against native app compatibility before deploying
+- [x] **RULE-06**: Validate all rule changes against native app compatibility before deploying
 
 ### External Integrations
 
-- [ ] **INTG-01**: Fix Squarespace website photo embed (photos load from Firebase Storage)
-- [ ] **INTG-02**: Fix Salesforce photo integration (photos pull correctly)
-- [ ] **INTG-03**: Verify `getPhoto` and `listUserPhotos` Cloud Functions are deployed and accessible
+- [x] **INTG-01**: Fix Squarespace website photo embed (photos load from Firebase Storage)
+- [x] **INTG-02**: Fix Salesforce photo integration (photos pull correctly)
+- [x] **INTG-03**: Verify `getPhoto` and `listUserPhotos` Cloud Functions are deployed and accessible
 
 ### Transition
 
@@ -68,10 +68,10 @@
 | RULE-03 | Phase 2 | Complete |
 | RULE-04 | Phase 2 | Complete |
 | RULE-05 | Phase 2 | Complete |
-| RULE-06 | Phase 2 | Pending |
-| INTG-01 | Phase 2 | Pending |
-| INTG-02 | Phase 2 | Pending |
-| INTG-03 | Phase 2 | Pending |
+| RULE-06 | Phase 2 | Complete |
+| INTG-01 | Phase 2 | Complete |
+| INTG-02 | Phase 2 | Complete |
+| INTG-03 | Phase 2 | Complete |
 | TRAN-01 | Phase 3 | Pending |
 | TRAN-02 | Phase 3 | Pending |
 | TRAN-03 | Phase 3 | Pending |
