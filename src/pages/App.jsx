@@ -15,6 +15,7 @@ import AppShell from "../components/AppShell";
 import ToastManager from "../components/ToastManager";
 import CreateUpdate from "../components/CreateUpdate";
 import NotificationPrompt from "../components/NotificationPrompt";
+import AppStoreBanner from "../components/AppStoreBanner";
 import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -431,6 +432,8 @@ export default function App() {
   // Main app with universal header and bottom navigation (now with React Router)
   return (
     <TypingProvider>
+      <AppStoreBanner />
+
       {showProfile && (
         <ProfileModal
           user={user}
