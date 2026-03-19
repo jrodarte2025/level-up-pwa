@@ -153,6 +153,38 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Reports ───────────────────────────────────────────────
+    // Authenticated users can create reports; nobody can read/update/delete
+    // (admin reads happen server-side or via Firebase console)
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.timestamp == request.time;
+      allow read:   if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── Admin Notifications ──────────────────────────────────
+    // Authenticated users can create admin notifications; admin reads via console
+    match /adminNotifications/{notifId} {
+      allow create: if request.auth != null
+        && request.resource.data.timestamp == request.time
+        && (
+          // Block notifications
+          (request.resource.data.type == 'block'
+            && request.resource.data.blockerUid == request.auth.uid)
+          ||
+          // Account deletion notifications
+          (request.resource.data.type == 'account_deleted'
+            && request.resource.data.uid == request.auth.uid)
+        );
+      allow read:   if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
     // ── Wildcard Catch-All ─────────────────────────────────────
     // Allows collection listing for authenticated PWA queries.
     // Required for PWA to enumerate collections it has access to.
