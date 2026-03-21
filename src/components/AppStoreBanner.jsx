@@ -8,7 +8,7 @@ import ShopIcon from '@mui/icons-material/Shop';
 const APP_STORE_URL = 'https://apps.apple.com/app/id6759622546';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=org.levelupcincinnati.app';
 const DISMISS_KEY = 'appStoreBannerDismissed';
-const DOWNLOAD_URL = 'https://levelupcincinnati.org/download.html';
+const DOWNLOAD_URL = 'https://app.levelupcincinnati.org/download.html';
 const QR_CODE_URL = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(DOWNLOAD_URL)}`;
 
 function getPlatform() {
@@ -82,32 +82,46 @@ export default function AppStoreBanner() {
         <CloseIcon fontSize="small" />
       </IconButton>
 
-      <img
-        src="/logo.png"
-        alt="Level Up"
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 8,
-          flexShrink: 0,
-        }}
-      />
+      {!isDesktop && (
+        <img
+          src="/logo.png"
+          alt="Level Up"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            flexShrink: 0,
+          }}
+        />
+      )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontWeight: 600,
-          fontSize: '0.85rem',
-          lineHeight: 1.2,
-        }}>
-          Level Up Cincinnati
-        </div>
-        <div style={{
-          fontSize: '0.75rem',
-          opacity: 0.8,
-          lineHeight: 1.3,
-        }}>
-          Switch to our new app for the best experience
-        </div>
+        {isDesktop ? (
+          <div style={{
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            lineHeight: 1.4,
+          }}>
+            Level Up Cincinnati: switch to our new app for the best experience
+          </div>
+        ) : (
+          <>
+            <div style={{
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              lineHeight: 1.2,
+            }}>
+              Level Up Cincinnati
+            </div>
+            <div style={{
+              fontSize: '0.75rem',
+              opacity: 0.8,
+              lineHeight: 1.3,
+            }}>
+              Switch to our new app for the best experience
+            </div>
+          </>
+        )}
       </div>
 
       {isDesktop ? (
