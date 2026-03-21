@@ -47,6 +47,16 @@ Plans:
 - [ ] 02-01-PLAN.md — Merge Firestore rules (11 divergences) and create canonical storage.rules with public profile photo read
 - [ ] 02-02-PLAN.md — Back up live rules, deploy merged rules to production, Jim verifies RSVP + photo integrations
 
+### Phase 02.1: Persistent native app download promotion banner in PWA (INSERTED)
+
+**Goal:** Upgrade AppStoreBanner to persistent all-platform download promotion (sessionStorage per-session dismissal, desktop QR code, migration-focused messaging) and remove NotificationPrompt entirely
+**Requirements**: TRAN-01, TRAN-02, TRAN-03
+**Depends on:** Phase 2
+**Plans:** 1 plan
+
+Plans:
+- [ ] 02.1-01-PLAN.md — Upgrade AppStoreBanner with sessionStorage dismissal, desktop QR code, and remove NotificationPrompt
+
 ### Phase 3: Transition
 **Goal**: PWA users can discover and download the native app, and the deployment protocol prevents future rule collisions
 **Depends on**: Phase 2
@@ -64,10 +74,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 → 2 → 2.1 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Diagnose | 1/1 | Complete | 2026-03-10 |
 | 2. Stabilize | 2/2 | Complete   | 2026-03-11 |
+| 2.1 Banner (INSERTED) | 0/1 | Not started | - |
 | 3. Transition | 0/2 | Not started | - |
