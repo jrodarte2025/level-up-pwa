@@ -14,7 +14,7 @@ import ProfileModal from "../components/ProfileModal";
 import AppShell from "../components/AppShell";
 import ToastManager from "../components/ToastManager";
 import CreateUpdate from "../components/CreateUpdate";
-import NotificationPrompt from "../components/NotificationPrompt";
+
 import AppStoreBanner from "../components/AppStoreBanner";
 import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
 import { auth, db } from "../firebase";
@@ -51,37 +51,7 @@ export default function App() {
   const [profileImage, setProfileImage] = useState(() => localStorage.getItem("profileImage") || "/default-avatar.png");
   const [imageChecked, setImageChecked] = useState(false);
   const [authLoaded, setAuthLoaded] = useState(false);
-  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState(null);
-
-  // Check if user should see notification prompt every 7 days
-  useEffect(() => {
-    if (!authLoaded || !user) return;
-
-    // Check if user has notifications enabled
-    const hasNotifications = typeof Notification !== 'undefined' && 
-                           Notification.permission === 'granted';
-    
-    // If notifications are already enabled, don't show prompt
-    if (hasNotifications) return;
-    
-    // Check when we last showed the prompt
-    const lastPromptShown = localStorage.getItem('lastNotificationPrompt');
-    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-    
-    // Show prompt if it's been more than 7 days since last prompt (or never shown)
-    const shouldShowPrompt = !lastPromptShown || parseInt(lastPromptShown) < sevenDaysAgo;
-    
-    if (shouldShowPrompt) {
-      // Wait 5 seconds after auth loads to avoid interfering with login flow
-      const timer = setTimeout(() => {
-        setShowNotificationPrompt(true);
-        // Record that we showed the prompt
-        localStorage.setItem('lastNotificationPrompt', Date.now().toString());
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [authLoaded, user]);
 
   // Session timeout management - TEMPORARILY DISABLED
   /*
@@ -138,8 +108,6 @@ export default function App() {
   // Handle sign out
   const handleSignOut = async () => {
     try {
-      // Clear notification prompt tracking on sign out
-      localStorage.removeItem('lastNotificationPrompt');
       localStorage.removeItem('profileImage');
       
       await signOut(auth);
@@ -147,29 +115,6 @@ export default function App() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-  };
-
-  // Handle notification prompt
-  const handleEnableNotifications = async () => {
-    try {
-      const { registerForNotifications } = await import("../utils/notifications");
-      const result = await registerForNotifications();
-      
-      if (result.success) {
-        console.log('Notifications enabled successfully');
-      } else {
-        console.log('Notification registration failed:', result.error);
-        // Still close the prompt - user tried
-      }
-    } catch (error) {
-      console.error('Error enabling notifications:', error);
-    }
-  };
-
-  const handleCloseNotificationPrompt = () => {
-    setShowNotificationPrompt(false);
-    // Don't need to set a dismiss timestamp since we use lastNotificationPrompt
-    // The 7-day timer is already recorded when prompt was shown
   };
 
   // Allow initial selected tab to be set from navigation state
@@ -516,14 +461,6 @@ export default function App() {
       )}
 
       <ToastManager message={toastMessage} />
-
-      {/* Notification Prompt */}
-      {showNotificationPrompt && (
-        <NotificationPrompt
-          onClose={handleCloseNotificationPrompt}
-          onEnable={handleEnableNotifications}
-        />
-      )}
 
       <Routes>
         <Route

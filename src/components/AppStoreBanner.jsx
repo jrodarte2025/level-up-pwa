@@ -8,7 +8,8 @@ import ShopIcon from '@mui/icons-material/Shop';
 const APP_STORE_URL = 'https://apps.apple.com/app/id6759622546';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=org.levelupcincinnati.app';
 const DISMISS_KEY = 'appStoreBannerDismissed';
-const REDISPLAY_DAYS = 14;
+const DOWNLOAD_URL = 'https://levelupcincinnati.org/download.html';
+const QR_CODE_URL = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(DOWNLOAD_URL)}`;
 
 function getPlatform() {
   const ua = navigator.userAgent || '';
@@ -23,24 +24,18 @@ export default function AppStoreBanner() {
   const platform = getPlatform();
 
   useEffect(() => {
-    // Don't show on desktop
-    if (platform === 'desktop') return;
+    // Clear old localStorage dismiss key to reset any existing 14-day cooldowns
+    localStorage.removeItem('appStoreBannerDismissed');
 
-    // Check dismissal
-    const dismissed = localStorage.getItem(DISMISS_KEY);
-    if (dismissed) {
-      const dismissedAt = parseInt(dismissed, 10);
-      const daysSince = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
-      if (daysSince < REDISPLAY_DAYS) return;
-    }
+    // Check sessionStorage dismissal (per-session only)
+    if (sessionStorage.getItem(DISMISS_KEY)) return;
 
-    // Delay slightly so it doesn't compete with page load
-    const timer = setTimeout(() => setVisible(true), 1500);
-    return () => clearTimeout(timer);
-  }, [platform]);
+    // Show immediately on all platforms (no delay, no desktop exclusion)
+    setVisible(true);
+  }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, Date.now().toString());
+    sessionStorage.setItem(DISMISS_KEY, 'true');
     setVisible(false);
   };
 
@@ -52,6 +47,7 @@ export default function AppStoreBanner() {
   if (!visible) return null;
 
   const isIOS = platform === 'ios';
+  const isDesktop = platform === 'desktop';
 
   return (
     <div
@@ -110,31 +106,58 @@ export default function AppStoreBanner() {
           opacity: 0.8,
           lineHeight: 1.3,
         }}>
-          Get the app for the best experience
+          Switch to our new app for the best experience
         </div>
       </div>
 
-      <button
-        onClick={handleDownload}
-        style={{
+      {isDesktop ? (
+        <div style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '0.3rem',
-          backgroundColor: '#F15F5E',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          padding: '0.5rem 0.85rem',
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
           flexShrink: 0,
-        }}
-      >
-        {isIOS ? <AppleIcon sx={{ fontSize: 16 }} /> : <ShopIcon sx={{ fontSize: 16 }} />}
-        Get App
-      </button>
+        }}>
+          <img
+            src={QR_CODE_URL}
+            alt="Scan to download"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 6,
+              backgroundColor: '#fff',
+            }}
+          />
+          <div style={{
+            fontSize: '0.65rem',
+            opacity: 0.8,
+            marginTop: '0.2rem',
+          }}>
+            Scan to download
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={handleDownload}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            backgroundColor: '#F15F5E',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '0.5rem 0.85rem',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {isIOS ? <AppleIcon sx={{ fontSize: 16 }} /> : <ShopIcon sx={{ fontSize: 16 }} />}
+          Get App
+        </button>
+      )}
     </div>
   );
 }
