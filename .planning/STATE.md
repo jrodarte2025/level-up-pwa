@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-11T00:05:27.131Z"
+stopped_at: Phase 02.1 context gathered
+last_updated: "2026-03-21T13:53:04.869Z"
 last_activity: 2026-03-10 -- Deployed and verified merged Firebase rules
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 2
   total_plans: 3
   completed_plans: 3
@@ -75,6 +75,10 @@ Recent decisions affecting current work:
 - [Phase 02]: registrationCodes locked to admin-only read/write per user decision
 - [Phase 02]: PWA generateCalendarLinks() normalized to handle all dash variants from native app events
 
+### Roadmap Evolution
+
+- Phase 2.1 inserted after Phase 2: Persistent native app download promotion banner in PWA (URGENT)
+
 ### Pending Todos
 
 None yet.
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T00:00:18.145Z
-Stopped at: Completed 02-02-PLAN.md
-Resume file: None
+Last session: 2026-03-21T13:53:04.866Z
+Stopped at: Phase 02.1 context gathered
+Resume file: .planning/phases/02.1-persistent-native-app-download-promotion-banner-in-pwa/02.1-CONTEXT.md
