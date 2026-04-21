@@ -54,21 +54,11 @@ export default function Login({ onLogin = () => {} }) {
   };
 
   const handlePasswordReset = async () => {
-    // Temporary: Password reset via email is being configured
-    // Direct users to contact support instead
-    setResetMessage(
-      "Password reset via email is temporarily unavailable while we configure our email system. " +
-      "Please contact support at hello@levelupcincinnati.org and ask for a password reset. We apologize for the inconvenience!"
-    );
-    return;
-
-    /* UNCOMMENT THIS CODE ONCE FIREBASE EMAIL TEMPLATES ARE CONFIGURED (remove the return above)
     if (!email) {
       setResetMessage("Please enter your email address to reset your password.");
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setResetMessage("Please enter a valid email address.");
@@ -83,10 +73,9 @@ export default function Login({ onLogin = () => {} }) {
         handleCodeInApp: false
       });
       setResetMessage("Password reset email sent! Please check your inbox and spam folder.");
-      setLoginError(""); // Clear any existing login errors
+      setLoginError("");
     } catch (error) {
       console.error("Password reset error:", error);
-      // Provide user-friendly error messages
       switch (error.code) {
         case 'auth/invalid-email':
           setResetMessage("Invalid email address format.");
@@ -106,7 +95,6 @@ export default function Login({ onLogin = () => {} }) {
     } finally {
       setIsResetting(false);
     }
-    */
   };
 
   return (
