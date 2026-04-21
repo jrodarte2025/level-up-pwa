@@ -64,6 +64,25 @@ export const getTheme = (mode = 'light') => createTheme({
         }),
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    // Roboto = primary font (95%+ of UI). Poppins = display/accent only.
+    fontFamily: '"Roboto", system-ui, -apple-system, "Segoe UI", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontFamily: '"Poppins", "Roboto", sans-serif',
+      fontWeight: 700,
+      letterSpacing: '-1px',
+    },
+    h2: {
+      fontFamily: '"Poppins", "Roboto", sans-serif',
+      fontWeight: 700,
+      letterSpacing: '-0.5px',
+    },
+    h3: {
+      fontFamily: '"Poppins", "Roboto", sans-serif',
+      fontWeight: 600,
+    },
+    h4: {
+      fontFamily: '"Poppins", "Roboto", sans-serif',
+      fontWeight: 600,
+    },
   },
 });
