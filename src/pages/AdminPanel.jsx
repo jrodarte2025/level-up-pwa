@@ -2184,7 +2184,7 @@ export default function AdminPanel({ tab }) {
               <option value="">Select Section</option>
               <option value="Networking">Networking</option>
               <option value="Professional Development">Professional Development</option>
-              <option value="Mental Wellness">Mental Wellness</option>
+              <option value="Health and Wellness">Health and Wellness</option>
               <option value="Financial Literacy">Financial Literacy</option>
               <option value="Forms & Waivers">Forms & Waivers</option>
               <option value="KPI & Program Info">KPI & Program Info</option>
