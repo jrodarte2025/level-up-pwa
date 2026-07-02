@@ -36,6 +36,7 @@ import MenuBookIcon    from '@mui/icons-material/MenuBook';
 import ChatBubbleIcon  from '@mui/icons-material/ChatBubble';
 import Resources from "./Resources";
 import Updates from "./Updates";
+import ProfilePage from "./ProfilePage";
 import { TypingProvider } from "../contexts/TypingContext";
 import "../App.css";
 
@@ -483,6 +484,7 @@ export default function App() {
               }
               profileImage={profileImage}
               profileName={`${firstName} ${lastName}`.trim()}
+              onProfileNavigate={() => navigate("/profile")}
               isAdminView={showAdminPanel && isAdmin}
               onExitAdmin={() => {
                 setShowAdminPanel(false);
@@ -568,6 +570,40 @@ export default function App() {
               tabs={tabs}
             >
               <CommentThreadPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AppShell
+              title="Profile"
+              profileImage={profileImage}
+              profileName={`${firstName} ${lastName}`.trim()}
+              onProfileClick={() => setShowProfile(true)}
+              onProfileNavigate={() => navigate("/profile")}
+              selectedTab=""
+              onTabChange={(tabKey) => {
+                setSelectedTab(tabKey);
+                navigate("/", { state: { selectedTab: tabKey } });
+              }}
+              tabs={tabs}
+            >
+              <ProfilePage
+                user={user}
+                userRole={userRole}
+                profileImage={profileImage}
+                firstName={firstName}
+                lastName={lastName}
+                company={company}
+                jobTitle={jobTitle}
+                major={major}
+                graduationYear={graduationYear}
+                linkedinUrl={linkedinUrl}
+                phoneNumber={phoneNumber}
+                onEdit={() => setShowProfile(true)}
+                onSignOut={handleSignOut}
+              />
             </AppShell>
           }
         />

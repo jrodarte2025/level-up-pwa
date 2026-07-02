@@ -108,19 +108,24 @@ export default function Login({ onLogin = () => {} }) {
     }}>
       <div style={{
         backgroundColor: theme.palette.background.paper,
-        borderRadius: "12px",
-        padding: "2rem",
+        borderRadius: "14px",
+        padding: "2.5rem 2rem",
         maxWidth: "400px",
         width: "100%",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        boxShadow: "0 4px 12px rgba(24, 38, 78, 0.08)",
         color: theme.palette.text.primary,
         border: `1px solid ${theme.palette.divider}`
       }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <img src="/logo.png" alt="Level Up Logo" style={{ height: "48px", marginBottom: "0.5rem" }} />
-          <h2 style={{ fontWeight: 600, fontSize: "1.5rem" }}>Welcome Back</h2>
-          <p style={{ marginTop: "0.25rem", fontSize: "0.95rem", color: theme.palette.text.primary }}>
+          <img src="/logo.png" alt="Level Up Logo" style={{ height: "48px", marginBottom: "0.75rem" }} />
+          <h2 style={{
+            margin: 0,
+            fontWeight: 700,
+            fontSize: "1.5rem",
+            fontFamily: '"Poppins", "Roboto", sans-serif',
+            letterSpacing: "-0.5px"
+          }}>Welcome Back</h2>
+          <p style={{ marginTop: "0.35rem", fontSize: "0.95rem", color: theme.palette.text.secondary }}>
             Log in to continue
           </p>
         </div>

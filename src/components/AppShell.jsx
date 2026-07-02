@@ -15,6 +15,7 @@ export default function AppShell({
   profileImage = "https://via.placeholder.com/32",
   profileName = "",
   onProfileClick = () => {},
+  onProfileNavigate,
   selectedTab = "",
   onTabChange = () => {},
   tabs = [],
@@ -48,7 +49,7 @@ export default function AppShell({
           onTabChange={onTabChange}
           profileImage={profileImage}
           profileName={profileName}
-          onProfileClick={onProfileClick}
+          onProfileClick={onProfileNavigate || onProfileClick}
           isAdminView={isAdminView}
           onExitAdmin={onExitAdmin}
         />
