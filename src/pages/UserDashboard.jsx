@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
+import { Chip } from "@mui/material";
 import EventCard from "../components/EventCard";
+import EventDrawer from "../components/EventDrawer";
 import GuestCountModal from "../components/GuestCountModal";
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { getDocs, doc, setDoc, deleteDoc, getDoc } from "firebase/firestore";
@@ -82,7 +84,6 @@ export default function UserDashboard({ setShowAdminPanel }) {
 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [rsvpUsers, setRsvpUsers] = useState([]);
-  const [showRsvpList, setShowRsvpList] = useState(false);
   
   // Guest modal state
   const [guestModalOpen, setGuestModalOpen] = useState(false);
@@ -158,7 +159,8 @@ export default function UserDashboard({ setShowAdminPanel }) {
     };
 
     loadRsvpUsers();
-  }, [selectedEvent]);
+    // rsvps in deps so the drawer's attendee list refreshes after RSVP/cancel
+  }, [selectedEvent, rsvps]);
 
   useEffect(() => {
     if (!user) return;
@@ -417,31 +419,35 @@ export default function UserDashboard({ setShowAdminPanel }) {
           )}
         </div>
 
-        {/* Filter buttons */}
+        {/* Filter chips */}
         <div style={{
           display: "flex",
           flexWrap: "wrap",
           gap: "0.5rem"
         }}>
           {[
-            { label: "Coach Events", key: "coach", color: "#18264E" },
-            { label: "Student Events", key: "student", color: "#6B7BA8" },
-            { label: "Required Only", key: "required", color: "#F15F5E" },
-            { label: "Not Yet RSVP'd", key: "notRsvpd", color: "#d8d9df" }
-          ].map(({ label, key, color }) => (
-            <button
+            { label: "Coach Events", key: "coach", color: "#18264E", fg: "#fff" },
+            { label: "Student Events", key: "student", color: "#6B7BA8", fg: "#fff" },
+            { label: "Required Only", key: "required", color: "#F15F5E", fg: "#fff" },
+            { label: "Not Yet RSVP'd", key: "notRsvpd", color: "#d8d9df", fg: "#18264E" }
+          ].map(({ label, key, color, fg }) => (
+            <Chip
               key={key}
+              label={label}
+              clickable
               onClick={() => toggleFilter(key)}
-              className={`button-toggle ${filters[key] ? "active" : ""}`}
-              style={filters[key] ? {
+              variant={filters[key] ? "filled" : "outlined"}
+              sx={filters[key] ? {
                 backgroundColor: color,
-                color: key === "notRsvpd" ? "#18264E" : "#fff",
-                borderColor: color,
-                fontWeight: 600
-              } : {}}
-            >
-              {label}
-            </button>
+                color: fg,
+                fontWeight: 600,
+                "&:hover": { backgroundColor: color, opacity: 0.9 }
+              } : {
+                borderColor: "#D1CDC4",
+                color: "text.primary",
+                backgroundColor: "background.paper"
+              }}
+            />
           ))}
         </div>
       </div>
@@ -459,28 +465,16 @@ export default function UserDashboard({ setShowAdminPanel }) {
             alignItems: "start"
           };
 
-          const renderCard = (event) => {
-            const isExpanded = selectedEvent && selectedEvent.id === event.id;
-            const attendingUsers = isExpanded ? rsvpUsers : [];
-
-            return (
-              <EventCard
-                key={event.id}
-                event={event}
-                isRSVPed={!!rsvps[event.id]?.attending}
-                isMatchGoing={!!matchRsvps[event.id]}
-                onRSVP={handleRSVP}
-                onClick={() => {
-                  setSelectedEvent(isExpanded ? null : event);
-                  setShowRsvpList(false);
-                }}
-                expanded={isExpanded}
-                showDetails={isExpanded}
-                attendingUsers={attendingUsers}
-                toggleDetails={() => setShowRsvpList(!showRsvpList)}
-              />
-            );
-          };
+          const renderCard = (event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              isRSVPed={!!rsvps[event.id]?.attending}
+              isMatchGoing={!!matchRsvps[event.id]}
+              onRSVP={handleRSVP}
+              onClick={() => setSelectedEvent(event)}
+            />
+          );
 
           return (
             <>
@@ -771,53 +765,16 @@ export default function UserDashboard({ setShowAdminPanel }) {
           </div>
         </div>
       )}
-      {/* Remove old selectedEvent modal, now replaced by accordion style */}
-      {showRsvpList && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.4)", display: "flex",
-          justifyContent: "center", alignItems: "center", zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: theme.palette.background.paper,
-            padding: "1.5rem",
-            borderRadius: "12px",
-            maxWidth: "400px",
-            width: "90%",
-            maxHeight: "70vh",
-            overflowY: "auto"
-          }}>
-            <h3 style={{ marginTop: 0, color: theme.palette.text.primary }}>RSVP'd Attendees</h3>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {rsvpUsers.map((user, i) => (
-                <li key={i} style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  marginBottom: "0.75rem",
-                  color: theme.palette.text.primary
-                }}>
-                  <img
-                    src={user.profileImage || "https://via.placeholder.com/32"}
-                    alt={user.email}
-                    style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
-                  />
-                  <span style={{ fontSize: "0.95rem", fontWeight: 500, color: theme.palette.text.primary }}>
-                    {user.displayName || user.email}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="button-primary"
-              onClick={() => setShowRsvpList(false)}
-              style={{ marginTop: "1rem", width: "100%" }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Event detail drawer (R2) — details, attendees, RSVP, calendar */}
+      <EventDrawer
+        open={!!selectedEvent}
+        event={selectedEvent}
+        isRSVPed={selectedEvent ? !!rsvps[selectedEvent.id]?.attending : false}
+        isMatchGoing={selectedEvent ? !!matchRsvps[selectedEvent.id] : false}
+        attendingUsers={rsvpUsers}
+        onRSVP={handleRSVP}
+        onClose={() => setSelectedEvent(null)}
+      />
 
       {/* Guest Count Modal */}
       <GuestCountModal
