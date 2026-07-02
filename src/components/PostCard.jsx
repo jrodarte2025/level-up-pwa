@@ -1,23 +1,42 @@
-import React, { useState, useRef } from "react";
+// src/components/PostCard.jsx
+// Redesigned for the desktop feed (R1). Pure presentation — identical props
+// and handler wiring as before (onCommentClick / onLikeClick /
+// onEmojiReaction flow up to Updates.jsx; no Firestore access here).
+import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import DOMPurify from "dompurify";
-import { Link } from "react-router-dom";
-import { MessageCircle, Heart, Link as LinkIcon } from "lucide-react";
-import { Paper, Typography, Box, Divider, Chip } from "@mui/material";
+import { MessageCircle, Link as LinkIcon } from "lucide-react";
+import { Typography, Box, Divider, Chip, Card, Button, Avatar } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ReactionBar from "./ReactionBar";
 import EmojiPicker from "./EmojiPicker";
+import { brandColors } from "../brandColors";
+
+const CLAMP_HEIGHT = 340; // px — long posts collapse past this with a fade
 
 const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditClick }) => {
   const theme = useTheme();
   const [imageError, setImageError] = React.useState(false);
   const [commentImageErrors, setCommentImageErrors] = React.useState({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [needsClamp, setNeedsClamp] = useState(false);
   const addReactionButtonRef = useRef(null);
+  const bodyRef = useRef(null);
+
+  useEffect(() => {
+    if (bodyRef.current && bodyRef.current.scrollHeight > CLAMP_HEIGHT + 60) {
+      setNeedsClamp(true);
+    }
+  }, [post.body]);
 
   const date = post.timestamp?.seconds
-    ? new Date(post.timestamp.seconds * 1000).toLocaleDateString()
+    ? new Date(post.timestamp.seconds * 1000).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
     : "";
 
   // Process reactions for ReactionBar
@@ -38,7 +57,7 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
   // Convert post reactions to format expected by ReactionBar
   const processedReactions = {};
   const userReactions = {};
-  
+
   if (post.reactions) {
     Object.entries(post.reactions).forEach(([emoji, count]) => {
       const key = getEmojiKey(emoji);
@@ -52,195 +71,262 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
     }
   };
 
+  const roleLabel =
+    post.role === "coach-board"
+      ? "Coach + Board"
+      : post.role
+      ? post.role.charAt(0).toUpperCase() + post.role.slice(1)
+      : null;
+
+  const linkHost = (() => {
+    if (!post.link) return null;
+    try {
+      return new URL(post.link.startsWith("http") ? post.link : `https://${post.link}`).hostname.replace(/^www\./, "");
+    } catch {
+      return post.link;
+    }
+  })();
+
   return (
-    <Box
-      sx={{
-        position: "relative",
-        mb: 3,
-        p: 3,
-        borderRadius: 2,
-        transition: "background-color 0.2s, box-shadow 0.2s",
-        "&:hover": {
-          backgroundColor: (theme) => theme.palette.action.hover,
-          boxShadow: 3,
-          cursor: "pointer",
-        },
-        boxShadow: 1,
-        border: "1px solid",
-        borderColor: (theme) => theme.palette.divider,
-      }}
-    >
-      {post.type && (
-        <Chip
-          label={post.type}
-          size="small"
-          sx={{
-            mb: 1,
-            backgroundColor: "#FCD8CE",
-            color: "#D23F3F",
-            fontWeight: 600,
-            fontSize: "0.75rem",
-            textTransform: "capitalize"
-          }}
-        />
-      )}
-      {post.title && (
-        <Box sx={{ mt: 2.5 }}>
-          <Typography
-            variant="body1"
-            fontWeight={600}
-            gutterBottom
-            sx={{ lineHeight: 1.4, color: (theme) => theme.palette.text.primary }}
-          >
-            {post.title}
+    <Card sx={{ position: "relative", mb: 3, p: { xs: 2.5, md: 3 } }}>
+      {/* Author header */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+        {post.headshotUrl && !imageError ? (
+          <Avatar
+            src={post.headshotUrl}
+            alt={post.displayName}
+            imgProps={{ onError: () => setImageError(true) }}
+            sx={{ width: 44, height: 44 }}
+          />
+        ) : (
+          <Avatar sx={{ width: 44, height: 44, backgroundColor: brandColors.primary.blue, fontSize: "1rem", fontWeight: 600 }}>
+            {post.displayName?.charAt(0)?.toUpperCase() || "?"}
+          </Avatar>
+        )}
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", lineHeight: 1.3 }}>
+              {post.displayName || "Unknown User"}
+            </Typography>
+            {roleLabel && (
+              <Chip
+                label={roleLabel}
+                size="small"
+                sx={{
+                  height: 20,
+                  fontSize: "0.68rem",
+                  backgroundColor: brandColors.secondary.bluePale,
+                  color: brandColors.primary.blue,
+                }}
+              />
+            )}
+            {post.alumni && (
+              <Chip
+                label="Alumni"
+                size="small"
+                sx={{
+                  height: 20,
+                  fontSize: "0.68rem",
+                  backgroundColor: brandColors.accent.tealPale,
+                  color: "#2F8990",
+                }}
+              />
+            )}
+          </Box>
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            {date}
           </Typography>
         </Box>
+        {post.type && (
+          <Chip
+            label={post.type}
+            size="small"
+            sx={{
+              backgroundColor: brandColors.primary.coralPale,
+              color: brandColors.primary.coral,
+              fontWeight: 600,
+              fontSize: "0.72rem",
+              textTransform: "capitalize",
+              flexShrink: 0,
+            }}
+          />
+        )}
+      </Box>
+
+      {post.title && (
+        <Typography
+          component="h3"
+          sx={{
+            fontFamily: '"Poppins", "Roboto", sans-serif',
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            letterSpacing: "-0.25px",
+            lineHeight: 1.3,
+            mb: 1,
+            color: "text.primary",
+          }}
+        >
+          {post.title}
+        </Typography>
       )}
+
       {post.body && (
-        <Box sx={{ mt: post.title ? 1.25 : 0 }}>
-          {/* Check if content is HTML (new posts) or Markdown (legacy posts) */}
-          {post.body.includes('<') && post.body.includes('>') ? (
-            <Box
-              dangerouslySetInnerHTML={{ 
-                __html: DOMPurify.sanitize(post.body, {
-                  ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3'],
-                  ALLOWED_ATTR: ['href', 'target', 'rel']
-                })
-              }}
-              sx={{
-                '& p': {
-                  fontSize: { xs: "0.9rem", sm: "1rem" },
-                  lineHeight: 1.65,
-                  marginBottom: '1em',
-                  color: (theme) => theme.palette.text.primary,
-                  wordBreak: 'break-word',
-                },
-                '& strong, & b': {
-                  fontWeight: 600,
-                },
-                '& em, & i': {
-                  fontStyle: 'italic',
-                },
-                '& a': {
-                  color: (theme) => theme.palette.primary.main,
-                  textDecoration: 'underline',
-                  '&:hover': {
-                    color: (theme) => theme.palette.primary.dark,
+        <Box sx={{ position: "relative" }}>
+          <Box
+            ref={bodyRef}
+            sx={{
+              maxHeight: needsClamp && !expanded ? `${CLAMP_HEIGHT}px` : "none",
+              overflow: "hidden",
+            }}
+          >
+            {/* Check if content is HTML (new posts) or Markdown (legacy posts) */}
+            {post.body.includes('<') && post.body.includes('>') ? (
+              <Box
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(post.body, {
+                    ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3'],
+                    ALLOWED_ATTR: ['href', 'target', 'rel']
+                  })
+                }}
+                sx={{
+                  '& p': {
+                    fontSize: "1rem",
+                    lineHeight: 1.65,
+                    margin: 0,
+                    marginBottom: '0.9em',
+                    color: "text.primary",
+                    wordBreak: 'break-word',
                   },
-                },
-                '& ul, & ol': {
-                  paddingLeft: '1.5rem',
-                  margin: '0.5em 0',
-                },
-                '& li': {
-                  marginBottom: '0.25em',
-                },
-                '& blockquote': {
-                  borderLeft: '3px solid var(--brand-muted-gray)',
-                  marginLeft: 0,
-                  marginRight: 0,
-                  paddingLeft: '1rem',
-                  color: 'var(--brand-medium-gray)',
-                  fontStyle: 'italic',
-                },
-                '& pre': {
-                  backgroundColor: 'var(--brand-off-white)',
-                  borderRadius: '0.375rem',
-                  color: '#111827',
-                  fontFamily: 'monospace',
-                  fontSize: '0.875em',
-                  padding: '0.75rem 1rem',
-                  overflowX: 'auto',
-                },
-                '& code': {
-                  backgroundColor: 'var(--brand-off-white)',
-                  borderRadius: '0.25rem',
-                  color: '#111827',
-                  fontFamily: 'monospace',
-                  fontSize: '0.875em',
-                  padding: '0.125rem 0.25rem',
-                },
-                '& h1, & h2, & h3': {
-                  fontWeight: 600,
-                  lineHeight: 1.3,
-                  marginTop: '1em',
-                  marginBottom: '0.5em',
-                },
-                '& h1': { fontSize: '1.5rem' },
-                '& h2': { fontSize: '1.25rem' },
-                '& h3': { fontSize: '1.125rem' },
+                  '& p:last-child': { marginBottom: 0 },
+                  '& strong, & b': { fontWeight: 600 },
+                  '& em, & i': { fontStyle: 'italic' },
+                  '& a': {
+                    color: theme.palette.secondary.main,
+                    textDecoration: 'underline',
+                    wordBreak: 'break-word',
+                  },
+                  '& ul, & ol': { paddingLeft: '1.5rem', margin: '0.5em 0' },
+                  '& li': { marginBottom: '0.25em', fontSize: '1rem', lineHeight: 1.6 },
+                  '& blockquote': {
+                    borderLeft: `3px solid ${brandColors.neutral[200]}`,
+                    margin: '0.75em 0',
+                    paddingLeft: '1rem',
+                    color: 'text.secondary',
+                    fontStyle: 'italic',
+                  },
+                  '& pre': {
+                    backgroundColor: brandColors.neutral[100],
+                    borderRadius: '0.5rem',
+                    fontFamily: 'monospace',
+                    fontSize: '0.875em',
+                    padding: '0.75rem 1rem',
+                    overflowX: 'auto',
+                  },
+                  '& code': {
+                    backgroundColor: brandColors.neutral[100],
+                    borderRadius: '0.25rem',
+                    fontFamily: 'monospace',
+                    fontSize: '0.875em',
+                    padding: '0.125rem 0.25rem',
+                  },
+                  '& h1, & h2, & h3': {
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                    marginTop: '1em',
+                    marginBottom: '0.5em',
+                  },
+                  '& h1': { fontSize: '1.35rem' },
+                  '& h2': { fontSize: '1.2rem' },
+                  '& h3': { fontSize: '1.1rem' },
+                }}
+              />
+            ) : (
+              /* Fallback for legacy Markdown posts */
+              <ReactMarkdown
+                rehypePlugins={[rehypeSanitize]}
+                components={{
+                  h1: () => null,
+                  h2: () => null,
+                  p: ({ node, ...props }) => (
+                    <Typography
+                      component="p"
+                      sx={{
+                        fontSize: "1rem",
+                        lineHeight: 1.65,
+                        mb: 1.5,
+                        color: "text.primary",
+                        wordBreak: "break-word"
+                      }}
+                      {...props}
+                    />
+                  ),
+                  a: ({ node, ...props }) => (
+                    <a
+                      {...props}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: theme.palette.secondary.main,
+                        textDecoration: "underline"
+                      }}
+                    />
+                  ),
+                  strong: ({ node, ...props }) => (
+                    <strong style={{ fontWeight: 600 }}>{props.children}</strong>
+                  ),
+                  em: ({ node, ...props }) => (
+                    <em style={{ fontStyle: "italic" }}>{props.children}</em>
+                  )
+                }}
+              >
+                {post.body}
+              </ReactMarkdown>
+            )}
+          </Box>
+          {needsClamp && !expanded && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                background: `linear-gradient(to bottom, transparent, ${theme.palette.background.paper})`,
+                pointerEvents: "none",
               }}
             />
-          ) : (
-            /* Fallback for legacy Markdown posts */
-            <ReactMarkdown
-              rehypePlugins={[rehypeSanitize]}
-              components={{
-                h1: () => null,
-                h2: () => null,
-                p: ({ node, ...props }) => (
-                  <Typography
-                    component="p"
-                    sx={{
-                      fontSize: {
-                        xs: "0.9rem",
-                        sm: "1rem",
-                        md: "1rem"
-                      },
-                      lineHeight: 1.65,
-                      mb: 1.5,
-                      color: (theme) => theme.palette.text.primary,
-                      wordBreak: "break-word"
-                    }}
-                    {...props}
-                  />
-                ),
-                a: ({ node, ...props }) => (
-                  <a
-                    {...props}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      color: theme.palette.primary.main,
-                      textDecoration: "underline"
-                    }}
-                  />
-                ),
-                strong: ({ node, ...props }) => (
-                  <strong style={{ fontWeight: 600 }}>{props.children}</strong>
-                ),
-                em: ({ node, ...props }) => (
-                  <em style={{ fontStyle: "italic" }}>{props.children}</em>
-                )
-              }}
-            >
-              {post.body}
-            </ReactMarkdown>
           )}
         </Box>
       )}
-      {post.link && (
-        <Box sx={{ mt: 1 }}>
-          <Typography
+      {needsClamp && (
+        <Button
+          size="small"
+          onClick={() => setExpanded(!expanded)}
+          sx={{ mt: 0.5, px: 1, minWidth: 0, color: "secondary.main", fontWeight: 600 }}
+        >
+          {expanded ? "Show less" : "Read more"}
+        </Button>
+      )}
+
+      {post.link && linkHost && (
+        <Box sx={{ mt: 1.5 }}>
+          <Button
             component="a"
             href={post.link}
             target="_blank"
             rel="noopener noreferrer"
-            sx={{
-              display: "inline-block",
-              color: (theme) => theme.palette.primary.main,
-              fontWeight: 500,
-              textDecoration: "underline",
-              fontSize: "0.95rem",
-              wordBreak: "break-word"
-            }}
+            variant="outlined"
+            size="small"
+            startIcon={<LinkIcon size={14} />}
+            sx={{ textTransform: "none", borderColor: brandColors.neutral[200], color: "primary.main" }}
           >
-            {post.link}
-          </Typography>
+            {linkHost}
+          </Button>
         </Box>
       )}
+
       {post.imageUrl && (
-        <Box sx={{ mt: 1.5 }}>
+        <Box sx={{ mt: 2 }}>
           <img
             src={post.imageUrl}
             alt="Post attachment"
@@ -248,175 +334,53 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
               width: "100%",
               maxHeight: "500px",
               objectFit: "cover",
-              borderRadius: "12px"
+              borderRadius: "12px",
+              display: "block",
             }}
           />
         </Box>
       )}
-      <Box display="flex" alignItems="center" gap={1} sx={{ mt: 1.25 }}>
-        {post.headshotUrl && !imageError ? (
-          <img
-            src={post.headshotUrl}
-            alt={post.displayName}
-            onError={() => setImageError(true)}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              objectFit: "cover"
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              backgroundColor: "#e5e7eb",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              color: "var(--brand-deep-gray)"
-            }}
-          >
-            {post.displayName?.charAt(0) || "?"}
-          </Box>
-        )}
-        <Box>
-          <Typography
-            variant="caption"
-            sx={{ color: "text.secondary", fontSize: "0.8rem" }}
-          >
-            {post.displayName || "Unknown User"} · {date}
-          </Typography>
-          <Box sx={{ mt: 0.5, mb: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-            {post.role === "coach-board" ? (
-              <Chip
-                label="Coach + Board"
-                size="small"
-                sx={{ fontSize: "0.7rem" }}
-              />
-            ) : post.role ? (
-              <Chip
-                label={post.role.charAt(0).toUpperCase() + post.role.slice(1)}
-                size="small"
-                sx={{ fontSize: "0.7rem", textTransform: "capitalize" }}
-              />
-            ) : null}
-            {post.alumni && (
-              <Chip
-                label="Alumni"
-                size="small"
-                color="info"
-                sx={{ fontSize: "0.7rem", textTransform: "capitalize" }}
-              />
-            )}
-          </Box>
-        </Box>
-      </Box>
+
       {/* Comment Previews */}
       {post.recentComments && post.recentComments.length > 0 && (
-        <Box sx={{ mt: { xs: 2, sm: 2.5 }, mb: 1.25 }}>
-          <Divider sx={{ mb: { xs: 1.5, sm: 2 } }} />
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: 'text.secondary', 
-              fontWeight: 600, 
-              fontSize: { xs: '0.7rem', sm: '0.75rem' },
-              mb: { xs: 1, sm: 1.5 },
-              display: 'block'
-            }}
-          >
-            Recent Comments
-          </Typography>
+        <Box sx={{ mt: 2.5 }}>
+          <Divider sx={{ mb: 1.5, borderColor: brandColors.neutral[150] }} />
           {post.recentComments.map((comment, index) => (
             <Box
               key={comment.id}
               sx={{
-                mb: index < post.recentComments.length - 1 ? { xs: 1, sm: 1.5 } : 0,
-                p: { xs: 1, sm: 1.5 },
-                backgroundColor: (theme) => theme.palette.action.hover,
-                borderRadius: 1,
-                borderLeft: '3px solid',
-                borderLeftColor: (theme) => theme.palette.primary.main,
-                transition: 'all 0.2s ease',
+                mb: index < post.recentComments.length - 1 ? 1 : 0,
+                p: 1.5,
+                backgroundColor: brandColors.neutral[100],
+                borderRadius: 2,
+                transition: 'background-color 0.15s ease',
                 cursor: 'pointer',
                 '&:hover': {
-                  backgroundColor: (theme) => theme.palette.action.selected,
-                  transform: 'translateX(2px)'
+                  backgroundColor: brandColors.neutral[150],
                 },
-                '&:active': {
-                  transform: 'translateX(1px)',
-                  backgroundColor: (theme) => theme.palette.action.selected,
-                }
               }}
               onClick={() => onCommentClick(post.id)}
             >
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: { xs: 0.5, sm: 1 }, 
-                mb: 0.5,
-                flexWrap: { xs: 'wrap', sm: 'nowrap' }
-              }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                 {comment.headshotUrl && !commentImageErrors[comment.id] ? (
-                  <img
+                  <Avatar
                     src={comment.headshotUrl}
                     alt={comment.displayName}
-                    onError={() => {
-                      setCommentImageErrors(prev => ({ ...prev, [comment.id]: true }));
+                    imgProps={{
+                      onError: () =>
+                        setCommentImageErrors(prev => ({ ...prev, [comment.id]: true })),
                     }}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }}
+                    sx={{ width: 22, height: 22 }}
                   />
                 ) : (
-                  <Box
-                    sx={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      backgroundColor: '#18264E',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.6rem',
-                      fontWeight: 600,
-                      color: 'white',
-                      flexShrink: 0
-                    }}
-                  >
+                  <Avatar sx={{ width: 22, height: 22, backgroundColor: brandColors.primary.blue, fontSize: '0.65rem', fontWeight: 600 }}>
                     {comment.displayName?.charAt(0)?.toUpperCase() || '?'}
-                  </Box>
+                  </Avatar>
                 )}
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                    color: 'text.primary',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    maxWidth: { xs: '120px', sm: '160px' }
-                  }}
-                >
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>
                   {comment.displayName || 'Unknown User'}
                 </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'text.secondary',
-                    fontSize: { xs: '0.65rem', sm: '0.7rem' },
-                    flexShrink: 0
-                  }}
-                >
+                <Typography variant="caption" sx={{ color: 'text.secondary', flexShrink: 0 }}>
                   {comment.timestamp?.seconds
                     ? new Date(comment.timestamp.seconds * 1000).toLocaleDateString([], {
                         month: 'short',
@@ -428,15 +392,15 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
               <Typography
                 variant="body2"
                 sx={{
-                  fontSize: { xs: '0.8rem', sm: '0.85rem' },
-                  lineHeight: 1.4,
+                  fontSize: '0.875rem',
+                  lineHeight: 1.45,
                   color: 'text.primary',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   display: '-webkit-box',
-                  WebkitLineClamp: { xs: 3, sm: 2 },
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  pl: { xs: 3, sm: 3.5 },
+                  pl: 3.75,
                   wordBreak: 'break-word'
                 }}
               >
@@ -445,23 +409,13 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
             </Box>
           ))}
           {post.commentCount > post.recentComments.length && (
-            <Box
-              sx={{
-                mt: 1,
-                textAlign: 'center',
-                cursor: 'pointer'
-              }}
-              onClick={() => onCommentClick(post.id)}
-            >
+            <Box sx={{ mt: 1, cursor: 'pointer' }} onClick={() => onCommentClick(post.id)}>
               <Typography
                 variant="caption"
                 sx={{
-                  color: 'primary.main',
-                  fontWeight: 500,
-                  fontSize: '0.75rem',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
+                  color: 'secondary.main',
+                  fontWeight: 600,
+                  '&:hover': { textDecoration: 'underline' }
                 }}
               >
                 View {post.commentCount - post.recentComments.length} more comments
@@ -470,9 +424,9 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
           )}
         </Box>
       )}
-      
-      <Divider sx={{ mt: post.recentComments && post.recentComments.length > 0 ? 1.25 : 2.5, mb: 1.25 }} />
-      <Box display="flex" gap={2} alignItems="center" sx={{ mt: 2 }}>
+
+      <Divider sx={{ mt: 2, mb: 1.5, borderColor: brandColors.neutral[150] }} />
+      <Box display="flex" gap={2} alignItems="center">
         {/* Emoji Reactions */}
         <ReactionBar
           reactions={processedReactions}
@@ -482,7 +436,7 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
           commentId={post.id}
           addButtonRef={addReactionButtonRef}
         />
-        
+
         <Box
           component="button"
           onClick={() => onCommentClick(post.id)}
@@ -494,9 +448,9 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
             background: "none",
             color: "text.secondary",
             cursor: "pointer",
-            opacity: 0.7,
+            opacity: 0.8,
             transition: "opacity 0.2s",
-            "&:hover": { 
+            "&:hover": {
               color: "primary.main",
               opacity: 1
             },
@@ -511,7 +465,7 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
           </Typography>
         </Box>
       </Box>
-      
+
       {/* Emoji Picker */}
       <EmojiPicker
         isOpen={showEmojiPicker}
@@ -520,7 +474,7 @@ const PostCard = ({ post, onCommentClick, onLikeClick, onEmojiReaction, onEditCl
         anchorEl={addReactionButtonRef.current}
         userReactions={userReactions}
       />
-    </Box>
+    </Card>
   );
 };
 
