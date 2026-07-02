@@ -36,6 +36,16 @@ const ROLE_COLORS = {
   admin: brandColors.primary.blue,
 };
 
+// 16Personalities type names — mirrors the mobile app's
+// src/data/pairingInsights.ts TYPE_NAMES (users.personalityCode is synced
+// nightly from Salesforce by the pairing-insights feature)
+const TYPE_NAMES = {
+  INTJ: "Architect", INTP: "Logician", ENTJ: "Commander", ENTP: "Debater",
+  INFJ: "Advocate", INFP: "Mediator", ENFJ: "Protagonist", ENFP: "Campaigner",
+  ISTJ: "Logistician", ISFJ: "Defender", ESTJ: "Executive", ESFJ: "Consul",
+  ISTP: "Virtuoso", ISFP: "Adventurer", ESTP: "Entrepreneur", ESFP: "Entertainer",
+};
+
 function FactRow({ icon, children, href }) {
   if (!children) return null;
   const content = (
@@ -96,49 +106,51 @@ export default function PersonDrawer({ open, user, isMyMatch = false, canEdit = 
         },
       }}
     >
-      {/* Header band */}
-      <Box
-        sx={{
-          position: "relative",
-          height: 110,
-          flexShrink: 0,
-          background: `linear-gradient(135deg, ${brandColors.primary.blue}, ${brandColors.primary.navyLight})`,
-        }}
-      >
-        <IconButton
-          onClick={onClose}
-          aria-label="Close"
-          size="small"
+      {/* Single scroll container so the avatar can overlap the header band
+          without being clipped at the scroll boundary */}
+      <Box sx={{ overflowY: "auto", flex: 1 }}>
+        {/* Header band */}
+        <Box
           sx={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            backgroundColor: "rgba(255,255,255,0.9)",
-            "&:hover": { backgroundColor: "#fff" },
+            position: "relative",
+            height: 110,
+            background: `linear-gradient(135deg, ${brandColors.primary.blue}, ${brandColors.primary.navyLight})`,
           }}
         >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-        {isMyMatch && (
-          <Chip
-            label="Your Match"
+          <IconButton
+            onClick={onClose}
+            aria-label="Close"
             size="small"
             sx={{
               position: "absolute",
               top: 12,
-              left: 12,
-              backgroundColor: brandColors.primary.coral,
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "0.7rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
+              right: 12,
+              backgroundColor: "rgba(255,255,255,0.9)",
+              "&:hover": { backgroundColor: "#fff" },
             }}
-          />
-        )}
-      </Box>
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+          {isMyMatch && (
+            <Chip
+              label="Your Match"
+              size="small"
+              sx={{
+                position: "absolute",
+                top: 12,
+                left: 12,
+                backgroundColor: brandColors.primary.coral,
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "0.7rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            />
+          )}
+        </Box>
 
-      <Box sx={{ px: 3, pb: 3, overflowY: "auto", flex: 1 }}>
+        <Box sx={{ px: 3, pb: 3 }}>
         <Avatar
           src={photo}
           alt={name}
@@ -193,6 +205,23 @@ export default function PersonDrawer({ open, user, isMyMatch = false, canEdit = 
               sx={{ backgroundColor: brandColors.secondary.bluePale, color: brandColors.primary.blue, fontWeight: 600 }}
             />
           )}
+          {user.personalityCode && (
+            <Chip
+              label={
+                TYPE_NAMES[user.personalityCode]
+                  ? `${user.personalityCode} · ${TYPE_NAMES[user.personalityCode]}`
+                  : user.personalityCode
+              }
+              size="small"
+              title="16Personalities type"
+              sx={{
+                backgroundColor: brandColors.primary.coralPale,
+                color: brandColors.primary.coral,
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+              }}
+            />
+          )}
         </Box>
 
         <Divider sx={{ mb: 2, borderColor: brandColors.neutral[150] }} />
@@ -240,6 +269,7 @@ export default function PersonDrawer({ open, user, isMyMatch = false, canEdit = 
             </Button>
           </>
         )}
+        </Box>
       </Box>
     </Drawer>
   );
