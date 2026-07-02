@@ -363,13 +363,12 @@ export default function UserDashboard({ setShowAdminPanel }) {
 
 
   return (
-    <div style={{ padding: "1rem", maxWidth: "1100px", margin: "0 auto" }}>
+    <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
       {/* Event Filters Subtitle and Controls */}
-      <div style={{ maxWidth: "600px", margin: "0 auto 1.5rem", padding: "0 1rem" }}>
+      <div style={{ margin: "0 0 1.5rem" }}>
         {/* Smart filter header with user context */}
         <div style={{
           marginBottom: "1rem",
-          textAlign: "center",
           fontSize: "0.9rem",
           color: "var(--brand-medium-gray)"
         }}>
@@ -422,7 +421,6 @@ export default function UserDashboard({ setShowAdminPanel }) {
         <div style={{
           display: "flex",
           flexWrap: "wrap",
-          justifyContent: "center",
           gap: "0.5rem"
         }}>
           {[
@@ -448,121 +446,105 @@ export default function UserDashboard({ setShowAdminPanel }) {
         </div>
       </div>
       {filteredEvents.length > 0 ? (
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          maxWidth: "600px",
-          margin: "0 auto"
-        }}>
-          {(() => {
-            // Group events by required status
-            const requiredEvents = filteredEvents.filter(e => e.required);
-            const optionalEvents = filteredEvents.filter(e => !e.required);
+        (() => {
+          // Group events by required status
+          const requiredEvents = filteredEvents.filter(e => e.required);
+          const optionalEvents = filteredEvents.filter(e => !e.required);
+
+          // Desktop-first responsive card grid (single column on phones)
+          const gridStyle = {
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))",
+            gap: "1.5rem",
+            alignItems: "start"
+          };
+
+          const renderCard = (event) => {
+            const isExpanded = selectedEvent && selectedEvent.id === event.id;
+            const attendingUsers = isExpanded ? rsvpUsers : [];
 
             return (
-              <>
-                {/* Required Events Section */}
-                {requiredEvents.length > 0 && (
-                  <>
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      marginBottom: "1rem",
-                      padding: "0 0.5rem"
+              <EventCard
+                key={event.id}
+                event={event}
+                isRSVPed={!!rsvps[event.id]?.attending}
+                isMatchGoing={!!matchRsvps[event.id]}
+                onRSVP={handleRSVP}
+                onClick={() => {
+                  setSelectedEvent(isExpanded ? null : event);
+                  setShowRsvpList(false);
+                }}
+                expanded={isExpanded}
+                showDetails={isExpanded}
+                attendingUsers={attendingUsers}
+                toggleDetails={() => setShowRsvpList(!showRsvpList)}
+              />
+            );
+          };
+
+          return (
+            <>
+              {/* Required Events Section */}
+              {requiredEvents.length > 0 && (
+                <>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    marginBottom: "1rem"
+                  }}>
+                    <span style={{
+                      backgroundColor: "#F15F5E",
+                      color: "#fff",
+                      padding: "0.35rem 0.75rem",
+                      borderRadius: "999px",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em"
                     }}>
-                      <span style={{
-                        backgroundColor: "#F15F5E",
-                        color: "#fff",
-                        padding: "0.35rem 0.75rem",
-                        borderRadius: "6px",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px"
-                      }}>
-                        Required
-                      </span>
+                      Required
+                    </span>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: "0.95rem",
+                      color: theme.palette.text.secondary
+                    }}>
+                      Don't Miss These
+                    </h3>
+                  </div>
+                  <div style={gridStyle}>
+                    {requiredEvents.map(renderCard)}
+                  </div>
+                </>
+              )}
+
+              {/* Optional Events Section */}
+              {optionalEvents.length > 0 && (
+                <>
+                  {requiredEvents.length > 0 && (
+                    <div style={{
+                      borderTop: `1px solid ${theme.palette.divider}`,
+                      margin: "2rem 0 1.5rem",
+                      paddingTop: "1.5rem"
+                    }}>
                       <h3 style={{
-                        margin: 0,
-                        fontSize: "0.95rem",
-                        color: theme.palette.text.secondary
+                        fontSize: "0.9rem",
+                        color: theme.palette.text.secondary,
+                        margin: "0 0 1rem"
                       }}>
-                        Don't Miss These
+                        Optional Events
                       </h3>
                     </div>
-                    {requiredEvents.map((event) => {
-                      const isExpanded = selectedEvent && selectedEvent.id === event.id;
-                      const attendingUsers = isExpanded ? rsvpUsers : [];
-
-                      return (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          isRSVPed={!!rsvps[event.id]?.attending}
-                          isMatchGoing={!!matchRsvps[event.id]}
-                          onRSVP={handleRSVP}
-                          onClick={() => {
-                            setSelectedEvent(isExpanded ? null : event);
-                            setShowRsvpList(false);
-                          }}
-                          expanded={isExpanded}
-                          showDetails={isExpanded}
-                          attendingUsers={attendingUsers}
-                          toggleDetails={() => setShowRsvpList(!showRsvpList)}
-                        />
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* Optional Events Section */}
-                {optionalEvents.length > 0 && (
-                  <>
-                    {requiredEvents.length > 0 && (
-                      <div style={{
-                        borderTop: `1px solid ${theme.palette.divider}`,
-                        margin: "2rem 0 1.5rem",
-                        paddingTop: "1.5rem"
-                      }}>
-                        <h3 style={{
-                          textAlign: "center",
-                          fontSize: "0.9rem",
-                          color: theme.palette.text.secondary,
-                          marginBottom: "1rem"
-                        }}>
-                          Optional Events
-                        </h3>
-                      </div>
-                    )}
-                    {optionalEvents.map((event) => {
-                      const isExpanded = selectedEvent && selectedEvent.id === event.id;
-                      const attendingUsers = isExpanded ? rsvpUsers : [];
-
-                      return (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          isRSVPed={!!rsvps[event.id]?.attending}
-                          isMatchGoing={!!matchRsvps[event.id]}
-                          onRSVP={handleRSVP}
-                          onClick={() => {
-                            setSelectedEvent(isExpanded ? null : event);
-                            setShowRsvpList(false);
-                          }}
-                          expanded={isExpanded}
-                          showDetails={isExpanded}
-                          attendingUsers={attendingUsers}
-                          toggleDetails={() => setShowRsvpList(!showRsvpList)}
-                        />
-                      );
-                    })}
-                  </>
-                )}
-              </>
-            );
-          })()}
-        </div>
+                  )}
+                  <div style={gridStyle}>
+                    {optionalEvents.map(renderCard)}
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()
       ) : (
         <div style={{
           textAlign: "center",
