@@ -34,10 +34,13 @@ export default function AppShell({
 
   if (isDesktop) {
     return (
+      // NOTE: no className here — the legacy .app-container rule in App.css
+      // (flex-direction: column, max-width: 800px) belongs to the mobile
+      // layout only and must not leak into the desktop shell.
       <Box
-        className="app-container"
         sx={{
           display: "flex",
+          flexDirection: "row",
           minHeight: "100vh",
           backgroundColor: "background.default",
           color: "text.primary",
