@@ -482,6 +482,13 @@ export default function App() {
                     : "")
               }
               profileImage={profileImage}
+              profileName={`${firstName} ${lastName}`.trim()}
+              isAdminView={showAdminPanel && isAdmin}
+              onExitAdmin={() => {
+                setShowAdminPanel(false);
+                setSelectedTab("events");
+                navigate("/", { state: { selectedTab: "events" } });
+              }}
               onProfileClick={() => setShowProfile(true)}
               selectedTab={selectedTab}
               onTabChange={(tabKey) => {
@@ -530,6 +537,7 @@ export default function App() {
               showBack
               onBack={() => navigate("/", { state: { selectedTab: "updates" } })}
               profileImage={profileImage}
+              profileName={`${firstName} ${lastName}`.trim()}
               onProfileClick={() => setShowProfile(true)}
               selectedTab="updates"
               onTabChange={(tabKey) => {
@@ -550,6 +558,7 @@ export default function App() {
               showBack
               onBack={() => navigate("/", { state: { selectedTab: "updates" } })}
               profileImage={profileImage}
+              profileName={`${firstName} ${lastName}`.trim()}
               onProfileClick={() => setShowProfile(true)}
               selectedTab="updates"
               onTabChange={(tabKey) => {

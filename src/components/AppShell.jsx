@@ -1,45 +1,94 @@
+// src/components/AppShell.jsx
+// Responsive shell: desktop gets a persistent sidebar layout (the PWA's
+// primary experience); small screens keep the legacy header + bottom-nav
+// (mobile users are steered to the native app via AppStoreBanner).
 import React from "react";
-import EventIcon from '@mui/icons-material/Event';
-import PeopleIcon from '@mui/icons-material/People';
-import LinkIcon from '@mui/icons-material/Link';
-import HowToRegIcon from '@mui/icons-material/HowToReg';
-import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
+import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useTheme } from "@mui/material/styles";
 import HeaderBar from "./HeaderBar";
 import BottomNavBar from "./BottomNavBar";
-import { useTheme } from "@mui/material/styles";
+import SideNav from "./SideNav";
 
 export default function AppShell({
   title = "",
   profileImage = "https://via.placeholder.com/32",
+  profileName = "",
   onProfileClick = () => {},
   selectedTab = "",
   onTabChange = () => {},
   tabs = [],
-  children
+  isAdminView = false,
+  onExitAdmin,
+  showBack = false,
+  onBack = () => {},
+  children,
 }) {
   const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, [selectedTab]);
 
-  const iconMap = {
-    events: EventIcon,
-    directory: PeopleIcon,
-    adminMatches: HowToRegIcon,
-    resources: HowToRegIcon, // Temporary icon assignment; consider updating if a better match is available
-    updates: ChatBubbleIcon
-  };
+  if (isDesktop) {
+    return (
+      <Box
+        className="app-container"
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: "background.default",
+          color: "text.primary",
+        }}
+      >
+        <SideNav
+          tabs={tabs}
+          selectedTab={selectedTab}
+          onTabChange={onTabChange}
+          profileImage={profileImage}
+          profileName={profileName}
+          onProfileClick={onProfileClick}
+          isAdminView={isAdminView}
+          onExitAdmin={onExitAdmin}
+        />
 
+        <Box component="main" sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ maxWidth: 1140, mx: "auto", px: { md: 4, lg: 6 }, py: 4 }}>
+            {/* Page header */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+              {showBack && (
+                <IconButton onClick={onBack} aria-label="Back" size="small">
+                  <ArrowBackIcon />
+                </IconButton>
+              )}
+              {title && (
+                <Typography variant="h1" component="h1">
+                  {title}
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={{ animation: "fadeIn 0.3s ease-in-out" }}>{children}</Box>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Legacy mobile layout (native app is the primary phone experience)
   return (
-    <div className="app-container" style={{
-      display: "flex",
-      flexDirection: "column",
-      minHeight: "100vh",
-      backgroundColor: theme.palette.background.default,
-      color: theme.palette.text.primary,
-      paddingBottom: "calc(6rem + env(safe-area-inset-bottom))"
-    }}>
+    <div
+      className="app-container"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
+      }}
+    >
       <HeaderBar
         title={title}
         profileImage={profileImage}
@@ -48,28 +97,22 @@ export default function AppShell({
       />
 
       {/* Main content */}
-      <div className="page-content" style={{
-        flex: 1,
-        backgroundColor: theme.palette.background.default,
-        paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
-        padding: "1rem",
-        boxSizing: "border-box",
-        overflowY: "auto",
-        maxWidth: "100vw"
-      }}>
-        {/* Children will be injected here */}
-        <div style={{
-          animation: "fadeIn 0.3s ease-in-out"
-        }}>
-          {children}
-        </div>
+      <div
+        className="page-content"
+        style={{
+          flex: 1,
+          backgroundColor: theme.palette.background.default,
+          paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
+          padding: "1rem",
+          boxSizing: "border-box",
+          overflowY: "auto",
+          maxWidth: "100vw",
+        }}
+      >
+        <div style={{ animation: "fadeIn 0.3s ease-in-out" }}>{children}</div>
       </div>
 
-      <BottomNavBar
-        tabs={tabs}
-        selectedTab={selectedTab}
-        onTabChange={onTabChange}
-      />
+      <BottomNavBar tabs={tabs} selectedTab={selectedTab} onTabChange={onTabChange} />
     </div>
   );
 }
