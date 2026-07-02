@@ -403,8 +403,8 @@ const PostPage = () => {
   return (
     <Box
       sx={{
-        p: 2,
-        maxWidth: 600,
+        p: { xs: 2, md: 0 },
+        maxWidth: 680,
         mx: "auto",
         backgroundColor: theme.palette.background.default,
         color: theme.palette.text.primary,

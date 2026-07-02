@@ -6,11 +6,12 @@ import {
 import { db, auth } from "../firebase";
 import PostCard from "../components/PostCard";
 import UpdatesRail from "../components/UpdatesRail";
-import { Typography, Box, Card } from "@mui/material";
+import { Typography, Box, Card, Skeleton } from "@mui/material";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function Updates() {
   const [posts, setPosts] = useState([]);
+  const [feedLoaded, setFeedLoaded] = useState(false);
   const [commentsByPost, setCommentsByPost] = useState({});
   const [commentCountsByPost, setCommentCountsByPost] = useState({});
   const [newComment, setNewComment] = useState({});
@@ -49,6 +50,7 @@ export default function Updates() {
           };
         }));
         setPosts(data.filter(Boolean));
+        setFeedLoaded(true);
       };
       fetchData();
 
@@ -158,7 +160,23 @@ export default function Updates() {
     >
       {/* Feed column */}
       <Box sx={{ minWidth: 0, maxWidth: 680, order: { xs: 2, md: 1 } }}>
-        {posts.length > 0 ? (
+        {!feedLoaded ? (
+          [0, 1].map((i) => (
+            <Card key={i} sx={{ mb: 3, p: 3 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+                <Skeleton variant="circular" width={44} height={44} />
+                <Box>
+                  <Skeleton width={140} height={20} />
+                  <Skeleton width={80} height={16} />
+                </Box>
+              </Box>
+              <Skeleton width="60%" height={28} sx={{ mb: 1 }} />
+              <Skeleton width="100%" height={18} />
+              <Skeleton width="92%" height={18} />
+              <Skeleton width="45%" height={18} />
+            </Card>
+          ))
+        ) : posts.length > 0 ? (
           posts.map((post) => (
             <PostCard
               key={post.id}

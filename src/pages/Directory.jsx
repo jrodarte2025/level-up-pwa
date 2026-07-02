@@ -13,6 +13,7 @@ import { formatPhoneNumber, validatePhoneNumber, normalizePhoneNumber } from "..
 export default function Directory({ roleFilter = "all", showAdminPanel = false }) {
   const theme = useTheme();
   const [users, setUsers] = useState([]);
+  const [usersLoaded, setUsersLoaded] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState(roleFilter);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -148,6 +149,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
         })
       );
       setUsers(data);
+      setUsersLoaded(true);
     };
     loadUsers();
   }, []);
@@ -369,7 +371,26 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
         gap: "1rem",
         alignItems: "start"
       }}>
-        {filtered.length > 0 ? (
+        {!usersLoaded ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "1rem",
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: "12px",
+              backgroundColor: theme.palette.background.paper,
+              gap: "1rem",
+              minHeight: "56px"
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "#EEECE7", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ width: "55%", height: 14, borderRadius: 7, backgroundColor: "#EEECE7", marginBottom: 8 }} />
+                <div style={{ width: "75%", height: 11, borderRadius: 6, backgroundColor: "#F3F1EC" }} />
+              </div>
+            </div>
+          ))
+        ) : filtered.length > 0 ? (
           filtered.map((u) => (
             <div
               key={u.id}

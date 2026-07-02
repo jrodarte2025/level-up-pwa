@@ -59,7 +59,7 @@ const CommentThreadPage = () => {
   }, [postId, commentId]);
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
+    <Box sx={{ maxWidth: 680, mx: "auto", p: { xs: 2, md: 0 } }}>
       <button
         onClick={() => navigate(`/post/${postId}`)}
         style={{

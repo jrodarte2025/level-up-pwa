@@ -14,6 +14,7 @@ import { processUpcomingEvents } from "../utils/eventUtils";
 export default function UserDashboard({ setShowAdminPanel }) {
   const theme = useTheme();
   const [events, setEvents] = useState([]);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
   const [user, setUser] = useState(auth.currentUser);
   const [userRole, setUserRole] = useState(null);
   const [rsvps, setRsvps] = useState({});
@@ -228,6 +229,7 @@ export default function UserDashboard({ setShowAdminPanel }) {
         ...doc.data(),
       }));
       setEvents(all);
+      setEventsLoaded(true);
     });
 
     return () => unsub();
@@ -451,7 +453,25 @@ export default function UserDashboard({ setShowAdminPanel }) {
           ))}
         </div>
       </div>
-      {filteredEvents.length > 0 ? (
+      {!eventsLoaded ? (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))",
+          gap: "1.5rem"
+        }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{
+              borderRadius: "14px",
+              overflow: "hidden",
+              border: "1px solid #E8E6E1",
+              backgroundColor: "#fff"
+            }}>
+              <div style={{ height: 200, backgroundColor: "#EEECE7" }} />
+              <div style={{ margin: "0.85rem", height: 40, borderRadius: 10, backgroundColor: "#F3F1EC" }} />
+            </div>
+          ))}
+        </div>
+      ) : filteredEvents.length > 0 ? (
         (() => {
           // Group events by required status
           const requiredEvents = filteredEvents.filter(e => e.required);
