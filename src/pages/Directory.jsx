@@ -194,7 +194,9 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
   };
 
   return (
-    <div className="page-content">
+    // No .page-content class: the desktop shell provides page padding, and
+    // the mobile shell already wraps children in its own .page-content div.
+    <div>
       {/* Sticky Search + Filter */}
       <div
         style={{

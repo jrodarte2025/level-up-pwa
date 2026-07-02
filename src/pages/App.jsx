@@ -431,7 +431,10 @@ export default function App() {
           onSwitchAdminView={(toAdmin) => {
             setShowProfile(false);
             setShowAdminPanel(toAdmin);
-            setSelectedTab(toAdmin ? "events" : "events");
+            setSelectedTab("events");
+            // The admin panel renders on "/" — navigate there in case the
+            // modal was opened from another route (e.g. /profile)
+            navigate("/", { state: { selectedTab: "events" } });
           }}
           onClose={() => setShowProfile(false)}
           isAdminPanel={showAdminPanel}
