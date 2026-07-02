@@ -33,12 +33,38 @@
             "value": "no-cache, no-store, must-revalidate"
           }
         ]
+      },
+      {
+        "source": "/.well-known/apple-app-site-association",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          }
+        ]
       }
     ],
     "rewrites": [
       {
         "source": "/download",
         "destination": "/download.html"
+      },
+      {
+        "source": "/event/**",
+        "function": "eventPreview"
+      },
+      {
+        "source": "/post/**",
+        "function": "postPreview"
       },
       {
         "source": "**",
