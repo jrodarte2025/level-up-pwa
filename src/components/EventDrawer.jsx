@@ -15,8 +15,11 @@ import {
   IconButton,
   Avatar,
   AvatarGroup,
+  Collapse,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import EventIcon from "@mui/icons-material/Event";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import PlaceIcon from "@mui/icons-material/Place";
@@ -103,6 +106,13 @@ export default function EventDrawer({
   onRSVP,
   onClose,
 }) {
+  const [showAttendeeList, setShowAttendeeList] = React.useState(false);
+
+  // Collapse the roster again whenever a different event opens
+  React.useEffect(() => {
+    setShowAttendeeList(false);
+  }, [event?.id]);
+
   if (!event) return null;
 
   const {
@@ -346,30 +356,60 @@ export default function EventDrawer({
             <Typography variant="overline" sx={{ color: "text.secondary", display: "block", mb: 1.5 }}>
               Who's attending ({attendingUsers.length})
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
-              <AvatarGroup max={10} sx={{ justifyContent: "flex-end", mb: 0.5 }}>
+            {/* Compact avatar strip — click to expand the named list */}
+            <Box
+              onClick={() => setShowAttendeeList((v) => !v)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                cursor: "pointer",
+                borderRadius: 2,
+                p: 0.75,
+                mx: -0.75,
+                "&:hover": { backgroundColor: brandColors.neutral[100] },
+              }}
+            >
+              <AvatarGroup
+                max={6}
+                sx={{
+                  "& .MuiAvatar-root": { width: 36, height: 36, fontSize: "0.85rem" },
+                }}
+              >
                 {attendingUsers.map((u, i) => (
-                  <Avatar key={i} src={u.profileImage} alt={u.displayName || u.email} sx={{ width: 36, height: 36 }}>
+                  <Avatar key={i} src={u.profileImage} alt={u.displayName || u.email}>
                     {(u.displayName || u.email || "?").charAt(0).toUpperCase()}
                   </Avatar>
                 ))}
               </AvatarGroup>
-              {attendingUsers.map((u, i) => (
-                <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                  <Avatar src={u.profileImage} alt={u.displayName || u.email} sx={{ width: 28, height: 28 }}>
-                    {(u.displayName || u.email || "?").charAt(0).toUpperCase()}
-                  </Avatar>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {u.displayName || u.email}
-                    {u.guestCount > 0 && (
-                      <Typography component="span" variant="caption" sx={{ color: "text.secondary", ml: 0.75 }}>
-                        +{u.guestCount} guest{u.guestCount > 1 ? "s" : ""}
-                      </Typography>
-                    )}
-                  </Typography>
-                </Box>
-              ))}
+              <Typography variant="body2" sx={{ color: "secondary.main", fontWeight: 600, ml: 0.5 }}>
+                {showAttendeeList ? "Hide list" : "See who's going"}
+              </Typography>
+              {showAttendeeList ? (
+                <ExpandLessIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+              ) : (
+                <ExpandMoreIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+              )}
             </Box>
+            <Collapse in={showAttendeeList}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mt: 1.5 }}>
+                {attendingUsers.map((u, i) => (
+                  <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Avatar src={u.profileImage} alt={u.displayName || u.email} sx={{ width: 28, height: 28 }}>
+                      {(u.displayName || u.email || "?").charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {u.displayName || u.email}
+                      {u.guestCount > 0 && (
+                        <Typography component="span" variant="caption" sx={{ color: "text.secondary", ml: 0.75 }}>
+                          +{u.guestCount} guest{u.guestCount > 1 ? "s" : ""}
+                        </Typography>
+                      )}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Collapse>
           </>
         )}
 
