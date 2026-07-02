@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -13,7 +13,6 @@ import CommentThreadPage from "./CommentThreadPage";
 import ProfileModal from "../components/ProfileModal";
 import AppShell from "../components/AppShell";
 import ToastManager from "../components/ToastManager";
-import CreateUpdate from "../components/CreateUpdate";
 
 import AppStoreBanner from "../components/AppStoreBanner";
 import { getStorage, ref as storageRef, getDownloadURL, uploadBytes } from "firebase/storage";
@@ -24,9 +23,19 @@ import { setDoc } from "firebase/firestore";
 import Login from "./Login";
 import Signup from "./Signup";
 import UserDashboard from "./UserDashboard";
-import AdminPanel from "./AdminPanel";
 import Directory from "./Directory";
-import AdminMatches from "./AdminMatches";
+
+// Admin surfaces + rich-text editor are code-split: regular users never
+// download AdminPanel (2.6k lines) or TipTap just to read the feed.
+const AdminPanel = lazy(() => import("./AdminPanel"));
+const AdminMatches = lazy(() => import("./AdminMatches"));
+const CreateUpdate = lazy(() => import("../components/CreateUpdate"));
+
+const LazyFallback = (
+  <div style={{ padding: "2rem", textAlign: "center", color: "#6B7280" }}>
+    Loading…
+  </div>
+);
 import EventLandingPage from "./EventLandingPage";
 import EventIcon       from '@mui/icons-material/Event';
 import PeopleIcon      from '@mui/icons-material/People';
@@ -343,7 +352,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/event/:eventId" element={<EventLandingPage />} />
-        <Route path="/test-update" element={<CreateUpdate />} />
+        <Route path="/test-update" element={<Suspense fallback={LazyFallback}><CreateUpdate /></Suspense>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -512,7 +521,7 @@ export default function App() {
               tabs={tabs}
             >
               {showAdminPanel && isAdmin ? (
-                <>
+                <Suspense fallback={LazyFallback}>
                   {selectedTab === "events" && <AdminPanel tab="events" />}
                   {selectedTab === "directory" && (
                     <Directory roleFilter="all" isAdmin={showAdminPanel && isAdmin} showAdminPanel={true} />
@@ -520,7 +529,7 @@ export default function App() {
                   {selectedTab === "adminMatches" && <AdminMatches />}
                   {selectedTab === "resources" && <AdminPanel tab="resources" />}
                   {selectedTab === "updates" && <AdminPanel tab="posts" />}
-                </>
+                </Suspense>
               ) : (
                 <>
                   {selectedTab === "events" && <UserDashboard setShowAdminPanel={setShowAdminPanel} />}
@@ -613,7 +622,7 @@ export default function App() {
         <Route path="/event/:eventId" element={<EventLandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/test-update" element={<CreateUpdate />} />
+        <Route path="/test-update" element={<Suspense fallback={LazyFallback}><CreateUpdate /></Suspense>} />
       </Routes>
     </TypingProvider>
   );
