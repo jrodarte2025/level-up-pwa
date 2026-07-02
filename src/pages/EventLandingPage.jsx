@@ -517,11 +517,11 @@ export default function EventLandingPage() {
         <div style={{
           position: "relative",
           width: "100%",
-          maxWidth: "800px",
+          maxWidth: "900px",
           margin: "0 auto",
           borderRadius: "16px",
           overflow: "hidden",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.15)"
+          boxShadow: "0 8px 24px rgba(24, 38, 78, 0.15)"
         }}>
           {/* Aspect ratio container - 16:9 */}
           <div style={{
@@ -576,20 +576,23 @@ export default function EventLandingPage() {
                 <span style={{
                   backgroundColor: "var(--brand-primary-coral)",
                   color: "#fff",
-                  padding: "0.25rem 0.5rem",
-                  borderRadius: "4px",
+                  padding: "0.3rem 0.7rem",
+                  borderRadius: "999px",
                   fontSize: "0.7rem",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   textTransform: "uppercase",
-                  marginBottom: "0.5rem",
+                  letterSpacing: "0.05em",
+                  marginBottom: "0.6rem",
                   display: "inline-block"
                 }}>
                   Required
                 </span>
               )}
               <h1 style={{
-                fontSize: "clamp(1.25rem, 4vw, 1.75rem)",
+                fontSize: "clamp(1.35rem, 4vw, 2.25rem)",
                 fontWeight: 700,
+                fontFamily: '"Poppins", "Roboto", sans-serif',
+                letterSpacing: "-0.5px",
                 margin: 0,
                 textShadow: "0 2px 4px rgba(0,0,0,0.3)"
               }}>
@@ -602,7 +605,7 @@ export default function EventLandingPage() {
 
       {/* Content Section */}
       <div style={{
-        maxWidth: "600px",
+        maxWidth: "720px",
         margin: "0 auto",
         padding: "1.5rem"
       }}>
@@ -667,6 +670,8 @@ export default function EventLandingPage() {
               fontSize: "1.1rem",
               fontWeight: 600,
               marginBottom: "1.5rem",
+              backgroundColor: "var(--brand-primary-coral)",
+              borderRadius: "10px",
               opacity: rsvpLoading ? 0.7 : 1
             }}
           >
@@ -692,7 +697,7 @@ export default function EventLandingPage() {
               justifyContent: "center",
               margin: "0 auto 1rem",
               fontSize: "1.5rem",
-              color: "#c9a962"
+              color: "#fff"
             }}>
               ✓
             </div>
