@@ -1,14 +1,38 @@
+// src/pages/Resources.jsx
+// Read-only resource library (no Firestore writes). Desktop-first
+// redesign: toolbar with search + filters, section groups, card grid.
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { auth } from "../firebase";
-import { Box, Typography, useTheme, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  useTheme,
+  Card,
+  TextField,
+  MenuItem,
+  Button,
+  Chip,
+  InputAdornment,
+  Collapse,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import SchoolIcon from "@mui/icons-material/School";
 import DescriptionIcon from "@mui/icons-material/Description";
 import PeopleIcon from "@mui/icons-material/People";
 import FeedbackIcon from "@mui/icons-material/Feedback";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { brandColors } from "../brandColors";
+
+const TYPE_STYLES = {
+  Form: { bg: brandColors.primary.coralPale, fg: "#B91C1C" },
+  Document: { bg: brandColors.secondary.bluePale, fg: brandColors.primary.blue },
+  "Resource Link": { bg: brandColors.accent.tealPale, fg: "#2F8990" },
+  Curriculum: { bg: brandColors.functional.successPale, fg: "#047857" },
+};
 
 export default function Resources() {
   const theme = useTheme();
@@ -57,214 +81,204 @@ export default function Resources() {
       return acc;
     }, {});
 
+  const sectionIcon = (section) => {
+    const sx = { fontSize: 20, color: brandColors.secondary.softBlue };
+    if (section.includes("Professional")) return <SchoolIcon sx={sx} />;
+    if (section.includes("Forms")) return <DescriptionIcon sx={sx} />;
+    if (section.includes("Networking")) return <PeopleIcon sx={sx} />;
+    if (section.includes("Support & Feedback")) return <FeedbackIcon sx={sx} />;
+    return <DescriptionIcon sx={sx} />;
+  };
+
   if (!userRole || resources.length === 0) {
     return (
-      <Box sx={{ p: 4, backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-        <Typography>Loading resources...</Typography>
+      <Box sx={{ p: 4 }}>
+        <Typography color="text.secondary">Loading resources...</Typography>
       </Box>
     );
   }
 
+  const hasActiveFilters = searchTerm || typeFilter || sectionFilter;
+
   return (
-    <Box sx={{ pb: "5rem", backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-      <Paper
-        elevation={1}
-        sx={{
-          px: 2,
-          py: 2.5,
-          mb: 4,
-          mx: 2,
-          borderRadius: 2,
-          backgroundColor: theme.palette.background.paper
-        }}
-      >
-        <Typography
-          variant="subtitle2"
-          sx={{ fontWeight: 600, mb: 1, color: theme.palette.text.secondary }}
+    <Box>
+      {/* Toolbar: search + filters */}
+      <Card sx={{ p: 2, mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 1.5,
+            alignItems: { sm: "center" },
+          }}
         >
-          Search & Filter
-        </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <input
-            type="text"
+          <TextField
             placeholder="Search resources..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              padding: "0.75rem",
-              fontSize: "1rem",
-              borderRadius: "6px",
-              border: `1px solid ${theme.palette.divider}`,
-              width: "100%",
-              backgroundColor: theme.palette.background.paper,
-              color: theme.palette.text.primary
+            sx={{ flex: 1, minWidth: 200 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                </InputAdornment>
+              ),
             }}
           />
-
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, flexWrap: "wrap", gap: "1rem" }}>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={{
-              padding: "0.65rem",
-              fontSize: "1rem",
-              borderRadius: "6px",
-              border: `1px solid ${theme.palette.divider}`,
-              fontWeight: 400,
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-              width: "100%",
-              minWidth: "160px",
-              backgroundColor: theme.palette.background.paper,
-              color: theme.palette.text.primary
-            }}>
-              <option value="">All Types</option>
-              <option value="Form">Form</option>
-              <option value="Document">Document</option>
-              <option value="Resource Link">Resource Link</option>
-              <option value="Curriculum">Curriculum</option>
-            </select>
-            <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value)} style={{
-              padding: "0.65rem",
-              fontSize: "1rem",
-              borderRadius: "6px",
-              border: `1px solid ${theme.palette.divider}`,
-              fontWeight: 400,
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-              width: "100%",
-              minWidth: "160px",
-              backgroundColor: theme.palette.background.paper,
-              color: theme.palette.text.primary
-            }}>
-              <option value="">All Sections</option>
-              {Array.from(new Set(resources.map(r => r.section))).map(section => (
-                <option key={section} value={section}>{section}</option>
-              ))}
-            </select>
-            <button
+          <TextField
+            select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            sx={{ minWidth: 160 }}
+            SelectProps={{ displayEmpty: true }}
+          >
+            <MenuItem value="">All Types</MenuItem>
+            <MenuItem value="Form">Form</MenuItem>
+            <MenuItem value="Document">Document</MenuItem>
+            <MenuItem value="Resource Link">Resource Link</MenuItem>
+            <MenuItem value="Curriculum">Curriculum</MenuItem>
+          </TextField>
+          <TextField
+            select
+            value={sectionFilter}
+            onChange={(e) => setSectionFilter(e.target.value)}
+            sx={{ minWidth: 180 }}
+            SelectProps={{ displayEmpty: true }}
+          >
+            <MenuItem value="">All Sections</MenuItem>
+            {Array.from(new Set(resources.map(r => r.section))).map(section => (
+              <MenuItem key={section} value={section}>{section}</MenuItem>
+            ))}
+          </TextField>
+          {hasActiveFilters && (
+            <Button
+              variant="text"
+              size="small"
               onClick={() => {
                 setSearchTerm("");
                 setTypeFilter("");
                 setSectionFilter("");
               }}
-              style={{
-                backgroundColor: theme.palette.background.paper,
-                color: "var(--brand-primary-blue)",
-                border: "1px solid var(--brand-primary-blue)",
-                padding: "0.5rem 1rem",
-                borderRadius: "6px",
-                fontWeight: 600,
-                cursor: "pointer",
-                marginTop: "0.5rem",
-                alignSelf: "flex-start"
-              }}
             >
-              Clear All Filters
-            </button>
-          </Box>
+              Clear
+            </Button>
+          )}
         </Box>
-      </Paper>
+      </Card>
+
       {Object.keys(grouped).length === 0 && (
-        <Typography sx={{ px: 2 }}>No resources available for your role yet.</Typography>
+        <Typography color="text.secondary">
+          {hasActiveFilters
+            ? "No resources match your search."
+            : "No resources available for your role yet."}
+        </Typography>
       )}
 
-      {Object.keys(grouped).length > 0 && (
-        Object.keys(grouped).map(section => (
-          <Box key={section} sx={{ mb: 4, px: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-              {section.includes("Professional") && <SchoolIcon sx={{ fontSize: 20, color: theme.palette.text.secondary }} />}
-              {section.includes("Forms") && <DescriptionIcon sx={{ fontSize: 20, color: theme.palette.text.secondary }} />}
-              {section.includes("Networking") && <PeopleIcon sx={{ fontSize: 20, color: theme.palette.text.secondary }} />}
-              {section.includes("Support & Feedback") && <FeedbackIcon sx={{ fontSize: 20, color: theme.palette.text.secondary }} />}
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                sx={{
-                  px: 1,
-                  py: 0.25,
-                  borderLeft: `4px solid #EF4444`,
-                  backgroundColor: theme.palette.background.paper,
-                  color: theme.palette.text.primary,
-                  borderRadius: 1
-                }}
-              >
-                {section}
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {grouped[section].map((r) => (
-                <Box
+      {Object.keys(grouped).map(section => (
+        <Box key={section} sx={{ mb: 4 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+            {sectionIcon(section)}
+            <Typography
+              variant="h4"
+              component="h2"
+              sx={{ color: "text.primary" }}
+            >
+              {section}
+            </Typography>
+            <Chip
+              label={grouped[section].length}
+              size="small"
+              sx={{
+                backgroundColor: brandColors.neutral[150],
+                color: brandColors.neutral[600],
+                fontWeight: 700,
+                height: 22,
+              }}
+            />
+          </Box>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
+              gap: 2,
+              alignItems: "start",
+            }}
+          >
+            {grouped[section].map((r) => {
+              const isOpen = expandedId === r.id;
+              const typeStyle = TYPE_STYLES[r.type] || TYPE_STYLES.Document;
+              return (
+                <Card
                   key={r.id}
+                  onClick={() => setExpandedId(isOpen ? null : r.id)}
                   sx={{
                     p: 2.5,
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.background.paper,
                     cursor: "pointer",
-                    transition: "background-color 0.2s",
+                    transition: "box-shadow 0.2s ease, transform 0.2s ease",
                     "&:hover": {
-                      backgroundColor: theme.palette.action.hover,
-                      boxShadow: 1,
+                      boxShadow: "0 8px 24px rgba(24, 38, 78, 0.12)",
+                      transform: "translateY(-2px)",
                     },
-                    mx: "auto",
-                    maxWidth: "720px",
-                    width: "100%",
                   }}
-                  onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
                 >
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Typography fontWeight={600}>{r.title}</Typography>
-                    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                      <Box sx={{
-                        backgroundColor: r.type === "Form" ? "#FEE2E2" : "#E0F2FE",
-                        color: r.type === "Form" ? "#B91C1C" : "#0369A1",
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
-                        borderRadius: "9999px",
-                        px: 1,
-                        py: 0.25,
-                        userSelect: "none"
-                      }}>
-                        {r.type}
-                      </Box>
-                      {expandedId === r.id ? (
-                        <ExpandLessIcon sx={{ fontSize: "1.5rem", color: theme.palette.text.secondary }} />
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+                    <Typography sx={{ fontWeight: 600, minWidth: 0 }}>
+                      {r.title}
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexShrink: 0 }}>
+                      <Chip
+                        label={r.type}
+                        size="small"
+                        sx={{
+                          backgroundColor: typeStyle.bg,
+                          color: typeStyle.fg,
+                          fontWeight: 600,
+                          fontSize: "0.72rem",
+                          height: 22,
+                        }}
+                      />
+                      {isOpen ? (
+                        <ExpandLessIcon sx={{ fontSize: "1.4rem", color: "text.secondary" }} />
                       ) : (
-                        <ExpandMoreIcon sx={{ fontSize: "1.5rem", color: theme.palette.text.secondary }} />
+                        <ExpandMoreIcon sx={{ fontSize: "1.4rem", color: "text.secondary" }} />
                       )}
                     </Box>
                   </Box>
 
-                  {expandedId === r.id && (
+                  <Collapse in={isOpen}>
                     <Box sx={{ mt: 1.5 }}>
-                      <Typography sx={{ fontSize: "0.875rem", mb: 1 }}>{r.description}</Typography>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        {r.timestamp?.seconds && (
-                          <Typography sx={{ fontSize: "0.75rem", color: theme.palette.text.secondary, mb: 0.5 }}>
+                      <Typography sx={{ fontSize: "0.875rem", mb: 1.5, color: "text.primary" }}>
+                        {r.description}
+                      </Typography>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                        {r.timestamp?.seconds ? (
+                          <Typography sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
                             Last updated: {new Date(r.timestamp.seconds * 1000).toLocaleDateString()}
                           </Typography>
-                        )}
-                        <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                          <Box
-                            component="span"
-                            sx={{
-                              color: theme.palette.primary.main,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.25rem",
-                              "&:hover": { textDecoration: "underline" }
-                            }}
-                          >
-                            Open {r.type} →
-                          </Box>
-                        </a>
+                        ) : <span />}
+                        <Button
+                          component="a"
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          size="small"
+                          variant="contained"
+                          color="secondary"
+                          endIcon={<OpenInNewIcon sx={{ fontSize: "0.9rem" }} />}
+                        >
+                          Open {r.type}
+                        </Button>
                       </Box>
                     </Box>
-                  )}
-                </Box>
-              ))}
-            </Box>
+                  </Collapse>
+                </Card>
+              );
+            })}
           </Box>
-        ))
-      )}
+        </Box>
+      ))}
     </Box>
   );
 }

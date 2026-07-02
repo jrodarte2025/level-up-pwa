@@ -203,10 +203,10 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
           backgroundColor: theme.palette.background.paper,
           zIndex: 10,
           border: `1px solid ${theme.palette.divider}`,
-          borderRadius: "8px",
+          borderRadius: "12px",
           padding: "1rem",
           marginBottom: "1.5rem",
-          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)"
+          boxShadow: "0 1px 3px rgba(24, 38, 78, 0.06)"
         }}
       >
         {/* Search */}
@@ -242,8 +242,13 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
         </div>
       </div>
 
-      {/* User list */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {/* User list — responsive card grid on desktop, single column on phones */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))",
+        gap: "1rem",
+        alignItems: "start"
+      }}>
         {filtered.length > 0 ? (
           filtered.map((u) => (
             <div
@@ -269,15 +274,23 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
               style={{
                 display: "flex",
                 alignItems: "center",
-                padding: "1rem 0.75rem",
+                padding: "1rem",
                 border: `1px solid ${theme.palette.divider}`,
-                borderRadius: "8px",
+                borderRadius: "12px",
                 cursor: "pointer",
                 backgroundColor: theme.palette.background.paper,
-                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                boxShadow: "0 1px 3px rgba(24, 38, 78, 0.06)",
                 color: theme.palette.text.primary,
                 transition: "box-shadow 0.2s ease, transform 0.2s ease",
                 minHeight: "56px", // Normalize card touch target
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 8px 24px rgba(24, 38, 78, 0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 1px 3px rgba(24, 38, 78, 0.06)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <div style={{ marginRight: "1rem" }}>
@@ -338,7 +351,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
                             fontSize: "0.75rem",
                             fontWeight: 500,
                             padding: "0.2rem 0.5rem",
-                            borderRadius: "4px",
+                            borderRadius: "999px",
                             color: "#fff",
                             backgroundColor: roleColors[role] || "#6b7280"
                           }}
@@ -355,7 +368,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
                             fontSize: "0.75rem",
                             fontWeight: 500,
                             padding: "0.2rem 0.5rem",
-                            borderRadius: "4px",
+                            borderRadius: "999px",
                             color: "#fff",
                             backgroundColor: roleColors[role] || "#6b7280"
                           }}
@@ -373,7 +386,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
                             fontSize: "0.75rem",
                             fontWeight: 500,
                             padding: "0.2rem 0.5rem",
-                            borderRadius: "4px",
+                            borderRadius: "999px",
                             color: "#fff",
                             backgroundColor: roleColors[role] || "#6b7280"
                           }}
@@ -393,7 +406,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
                             fontSize: "0.75rem",
                             fontWeight: 500,
                             padding: "0.2rem 0.5rem",
-                            borderRadius: "4px",
+                            borderRadius: "999px",
                             color: "#fff",
                             backgroundColor: roleColors[r] || "#6b7280"
                           }}
@@ -408,7 +421,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
                         fontSize: "0.75rem",
                         fontWeight: 500,
                         padding: "0.2rem 0.5rem",
-                        borderRadius: "4px",
+                        borderRadius: "999px",
                         backgroundColor: "#4CAFB6",
                         color: "#fff"
                       }}
@@ -473,7 +486,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
               backgroundColor: roleColors[selectedUser.role] || "#6b7280",
               color: "#fff",
               padding: "0.25rem 0.5rem",
-              borderRadius: "4px",
+              borderRadius: "999px",
               fontSize: "0.75rem",
               fontWeight: 600
             }}>
@@ -956,7 +969,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
               backgroundColor: roleColors[selectedUser.role] || "#6b7280",
               color: "#fff",
               padding: "0.25rem 0.5rem",
-              borderRadius: "4px",
+              borderRadius: "999px",
               fontSize: "0.75rem",
               fontWeight: 600
             }}>
