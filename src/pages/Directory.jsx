@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AvatarList from "../components/AvatarList";
+import PersonDrawer from "../components/PersonDrawer";
 import { db } from "../firebase";
 import { collection, getDocs, query, where, doc, deleteDoc, setDoc, getDoc } from "firebase/firestore";
 import { getStorage, ref as storageRef, getDownloadURL } from "firebase/storage";
@@ -26,6 +27,29 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
   // New: editing state for admin edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [copiedUid, setCopiedUid] = useState(false);
+  // R3: read-only person drawer (admin editing still uses the legacy modal)
+  const [drawerUser, setDrawerUser] = useState(null);
+
+  // Hand off from the drawer to the legacy admin-edit modal (write paths untouched)
+  const openAdminEdit = (u) => {
+    setDrawerUser(null);
+    setSelectedUser(u);
+    setIsEditing(true);
+    setEditForm({
+      firstName: u.firstName || "",
+      lastName: u.lastName || "",
+      email: u.email || "",
+      phoneNumber: u.phoneNumber || "",
+      title: u.title || "",
+      company: u.company || "",
+      major: u.major || "",
+      graduationYear: u.graduationYear || "",
+      linkedinUrl: u.linkedinUrl || "",
+      boardRole: u.boardRole || "",
+      role: u.role || "student",
+      alumni: u.alumni || false
+    });
+  };
   // Load the current user's match and all matches
   useEffect(() => {
     const loadMatch = async () => {
@@ -244,6 +268,100 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
         </div>
       </div>
 
+      {/* R3: featured match section — the heart of the program, front and center */}
+      {(() => {
+        const myMatches = users.filter((u) => myMatchSet.has(u.id));
+        if (myMatches.length === 0 || search !== "") return null;
+        return (
+          <div style={{ marginBottom: "1.75rem" }}>
+            <div style={{
+              fontSize: "0.6875rem",
+              fontWeight: 600,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--brand-primary-coral)",
+              marginBottom: "0.6rem"
+            }}>
+              {myMatches.length > 1 ? "Your Matches" : "Your Match"}
+            </div>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
+              gap: "1rem"
+            }}>
+              {myMatches.map((u) => (
+                <div
+                  key={u.id}
+                  onClick={() => setDrawerUser(u)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    padding: "1.25rem",
+                    borderRadius: "14px",
+                    cursor: "pointer",
+                    background: "linear-gradient(135deg, #18264E 0%, #1E3060 100%)",
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(24, 38, 78, 0.2)",
+                    transition: "box-shadow 0.2s ease, transform 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = "0 10px 28px rgba(24, 38, 78, 0.3)";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(24, 38, 78, 0.2)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <img
+                    src={u.headshotUrl || u.profileImage || "/default-avatar.png"}
+                    alt={`${u.firstName} ${u.lastName}`}
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: "3px solid rgba(255,255,255,0.35)",
+                      flexShrink: 0
+                    }}
+                  />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{
+                      fontFamily: '"Poppins", "Roboto", sans-serif',
+                      fontWeight: 700,
+                      fontSize: "1.1rem",
+                      letterSpacing: "-0.25px"
+                    }}>
+                      {u.firstName} {u.lastName}
+                    </div>
+                    <div style={{
+                      fontSize: "0.85rem",
+                      opacity: 0.85,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap"
+                    }}>
+                      {u.role === "student"
+                        ? [u.major, u.graduationYear ? `Class of ${u.graduationYear}` : ""].filter(Boolean).join(", ")
+                        : [u.title, u.company].filter(Boolean).join(" at ")}
+                    </div>
+                    <div style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      color: "#FFA69E",
+                      marginTop: "0.35rem"
+                    }}>
+                      View profile →
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* User list — responsive card grid on desktop, single column on phones */}
       <div style={{
         display: "grid",
@@ -255,23 +373,7 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
           filtered.map((u) => (
             <div
               key={u.id}
-              onClick={() => {
-                setSelectedUser(u);
-                setEditForm({
-                  firstName: u.firstName || "",
-                  lastName: u.lastName || "",
-                  email: u.email || "",
-                  phoneNumber: u.phoneNumber || "",
-                  title: u.title || "",
-                  company: u.company || "",
-                  major: u.major || "",
-                  graduationYear: u.graduationYear || "",
-                  linkedinUrl: u.linkedinUrl || "",
-                  boardRole: u.boardRole || "",
-                  role: u.role || "student",
-                  alumni: u.alumni || false
-                });
-              }}
+              onClick={() => setDrawerUser(u)}
               className="directory-user-card"
               style={{
                 display: "flex",
@@ -442,6 +544,16 @@ export default function Directory({ roleFilter = "all", showAdminPanel = false }
           </p>
         )}
       </div>
+
+      {/* R3: read-only person drawer */}
+      <PersonDrawer
+        open={!!drawerUser}
+        user={drawerUser}
+        isMyMatch={drawerUser ? myMatchSet.has(drawerUser.id) : false}
+        canEdit={editable}
+        onEdit={openAdminEdit}
+        onClose={() => setDrawerUser(null)}
+      />
 
       {/* Detail modal */}
       {selectedUser && (
