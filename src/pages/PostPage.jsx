@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify";
 import { useTheme } from "@mui/material/styles";
-import { Box, Typography, Divider } from "@mui/material";
+import { Box, Typography, Divider, Card, Avatar, Chip, Button, Skeleton } from "@mui/material";
+import { brandColors } from "../brandColors";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   doc,
@@ -411,89 +413,158 @@ const PostPage = () => {
       }}
     >
       {/* Back button for returning to Updates */}
-      <button
+      <Button
         onClick={() => navigate("/", { state: { selectedTab: "updates" } })}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--brand-primary-coral)",
-          fontWeight: 500,
-          fontSize: "0.875rem",
-          textDecoration: "underline",
-          marginBottom: "1rem",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem"
-        }}
+        size="small"
+        sx={{ mb: 2, color: "text.secondary", fontWeight: 600, px: 1, "&:hover": { color: "secondary.main" } }}
       >
-        ← Return to Updates
-      </button>
+        ← Back to Updates
+      </Button>
       {post ? (
-        <Box
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            p: "1rem",
-            borderRadius: "12px",
-            boxShadow: theme.palette.mode === "dark"
-              ? "0 1px 3px rgba(0, 0, 0, 0.7)"
-              : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            mb: "1.5rem",
-            border: `1px solid ${theme.palette.divider}`,
-            color: theme.palette.text.primary
-          }}
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: "0.5rem", color: theme.palette.text.primary }}>
-            {post.title}
-          </Typography>
-          <ReactMarkdown
-            components={{
-              p: ({ node, ...props }) => (
-                <Typography
-                  variant="body1"
-                  gutterBottom
-                  sx={{ color: theme.palette.text.primary, lineHeight: 1.6 }}
-                  {...props}
-                />
-              ),
-              a: ({ node, ...props }) => (
-                <a
-                  {...props}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: "var(--brand-primary-coral)",
-                    textDecoration: "underline"
-                  }}
-                />
-              )
-            }}
-          >
-            {post.body}
-          </ReactMarkdown>
-          {post.link && (
-            <a
-              href={post.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "var(--brand-primary-coral)",
-                textDecoration: "underline",
-                fontSize: "0.875rem"
+        <Card sx={{ p: { xs: 2.5, md: 3 }, mb: 3 }}>
+          {/* Author header — same language as the feed's PostCard */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            {post.headshotUrl ? (
+              <Avatar src={post.headshotUrl} alt={post.displayName} sx={{ width: 44, height: 44 }} />
+            ) : (
+              <Avatar sx={{ width: 44, height: 44, backgroundColor: brandColors.primary.blue, fontSize: "1rem", fontWeight: 600 }}>
+                {post.displayName?.charAt(0)?.toUpperCase() || "?"}
+              </Avatar>
+            )}
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", lineHeight: 1.3 }}>
+                {post.displayName || "Unknown"}
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                {post.timestamp?.toDate?.()
+                  ? new Date(post.timestamp.toDate()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                  : ""}
+              </Typography>
+            </Box>
+            {post.type && (
+              <Chip
+                label={post.type}
+                size="small"
+                sx={{
+                  backgroundColor: brandColors.primary.coralPale,
+                  color: brandColors.primary.coral,
+                  fontWeight: 600,
+                  fontSize: "0.72rem",
+                  textTransform: "capitalize",
+                  flexShrink: 0,
+                }}
+              />
+            )}
+          </Box>
+
+          {post.title && (
+            <Typography
+              component="h2"
+              sx={{
+                fontFamily: '"Poppins", "Roboto", sans-serif',
+                fontWeight: 700,
+                fontSize: "1.35rem",
+                letterSpacing: "-0.25px",
+                lineHeight: 1.3,
+                mb: 1,
               }}
             >
-              {post.link}
-            </a>
+              {post.title}
+            </Typography>
           )}
-          <Typography
-            variant="caption"
-            sx={{ display: "block", mt: "1rem", color: theme.palette.text.secondary }}
-          >
-            Posted by {post.displayName || "Unknown"} · {new Date(post.timestamp?.toDate?.()).toLocaleDateString()}
-          </Typography>
-        </Box>
+
+          {/* HTML posts (new) vs Markdown (legacy) — the old page pushed
+              everything through Markdown, so HTML posts showed raw tags */}
+          {post.body && (
+            post.body.includes("<") && post.body.includes(">") ? (
+              <Box
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(post.body, {
+                    ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "u", "a", "ul", "ol", "li", "blockquote", "pre", "code", "h1", "h2", "h3"],
+                    ALLOWED_ATTR: ["href", "target", "rel"],
+                  }),
+                }}
+                sx={{
+                  "& p": { fontSize: "1rem", lineHeight: 1.65, m: 0, mb: "0.9em", color: "text.primary", wordBreak: "break-word" },
+                  "& p:last-child": { mb: 0 },
+                  "& strong, & b": { fontWeight: 600 },
+                  "& a": { color: theme.palette.secondary.main, textDecoration: "underline", wordBreak: "break-word" },
+                  "& ul, & ol": { pl: "1.5rem", my: "0.5em" },
+                  "& li": { mb: "0.25em", fontSize: "1rem", lineHeight: 1.6 },
+                }}
+              />
+            ) : (
+              <ReactMarkdown
+                components={{
+                  p: ({ node, ...props }) => (
+                    <Typography
+                      variant="body1"
+                      gutterBottom
+                      sx={{ color: theme.palette.text.primary, lineHeight: 1.65 }}
+                      {...props}
+                    />
+                  ),
+                  a: ({ node, ...props }) => (
+                    <a
+                      {...props}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: theme.palette.secondary.main,
+                        textDecoration: "underline"
+                      }}
+                    />
+                  )
+                }}
+              >
+                {post.body}
+              </ReactMarkdown>
+            )
+          )}
+          {post.link && (
+            <Box sx={{ mt: 1.5 }}>
+              <Button
+                component="a"
+                href={post.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                size="small"
+                sx={{ textTransform: "none", borderColor: brandColors.neutral[200], color: "primary.main" }}
+              >
+                {(() => {
+                  try {
+                    return new URL(post.link.startsWith("http") ? post.link : `https://${post.link}`).hostname.replace(/^www\./, "");
+                  } catch {
+                    return post.link;
+                  }
+                })()}
+              </Button>
+            </Box>
+          )}
+          {post.imageUrl && (
+            <Box sx={{ mt: 2 }}>
+              <img
+                src={post.imageUrl}
+                alt="Post attachment"
+                style={{ width: "100%", maxHeight: 500, objectFit: "cover", borderRadius: 12, display: "block" }}
+              />
+            </Box>
+          )}
+        </Card>
       ) : (
-        <Typography sx={{ color: theme.palette.text.primary }}>Loading post...</Typography>
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Skeleton variant="circular" width={44} height={44} />
+            <Box>
+              <Skeleton width={140} height={20} />
+              <Skeleton width={80} height={16} />
+            </Box>
+          </Box>
+          <Skeleton width="60%" height={28} sx={{ mb: 1 }} />
+          <Skeleton width="100%" height={18} />
+          <Skeleton width="85%" height={18} />
+        </Card>
       )}
 
       <Divider sx={{ my: 3, borderColor: theme.palette.divider }} />
