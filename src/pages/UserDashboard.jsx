@@ -317,8 +317,17 @@ export default function UserDashboard({ setShowAdminPanel }) {
     const isStudent = Array.isArray(groups)
       ? groups.includes("students")
       : groups === "both" || groups === "students";
+    const isForBoard = Array.isArray(groups)
+      ? groups.includes("board")
+      : groups === "board";
     const isRequired = event.required;
     const isRSVPed = rsvps[event.id];
+
+    // Board-only events are visible only to board-adjacent roles,
+    // regardless of which manual filters are active.
+    if (isForBoard && !isCoach && !isStudent) {
+      if (!["board", "coach-board", "admin", "employee"].includes(userRole)) return false;
+    }
 
     // AUTOMATIC ROLE-BASED FILTERING
     // If no manual filters are active, auto-filter by user role

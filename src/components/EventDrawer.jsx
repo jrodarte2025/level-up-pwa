@@ -144,12 +144,17 @@ export default function EventDrawer({
   const isForStudents = Array.isArray(groups)
     ? groups.includes("students")
     : groups === "both" || groups === "students";
+  const isForBoard = Array.isArray(groups)
+    ? groups.includes("board")
+    : groups === "board";
   const isForBoth = isForCoaches && isForStudents;
 
   const audienceColor = isForBoth
     ? brandColors.accent.teal
     : isForCoaches
     ? brandColors.primary.blue
+    : isForBoard
+    ? brandColors.primary.navyDark
     : brandColors.secondary.softBlue;
 
   const hasRegisterLink =
@@ -205,7 +210,7 @@ export default function EventDrawer({
         </IconButton>
         <Box sx={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 0.75 }}>
           <Chip
-            label={isForBoth ? "All Attendees" : isForCoaches ? "For Coaches" : "For Students"}
+            label={isForBoth ? "All Attendees" : isForCoaches ? "For Coaches" : isForBoard ? "For Board" : "For Students"}
             size="small"
             sx={{ backgroundColor: audienceColor, color: "#fff", fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.04em" }}
           />

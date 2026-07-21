@@ -43,12 +43,17 @@ export default function EventCard({
   const isForStudents = Array.isArray(groups)
     ? groups.includes("students")
     : groups === "both" || groups === "students";
+  const isForBoard = Array.isArray(groups)
+    ? groups.includes("board")
+    : groups === "board";
   const isForBoth = isForCoaches && isForStudents;
 
   const audienceColor = isForBoth
     ? brandColors.accent.teal
     : isForCoaches
     ? brandColors.primary.blue
+    : isForBoard
+    ? brandColors.primary.navyDark
     : brandColors.secondary.softBlue;
 
   const badgeBase = {
@@ -109,7 +114,7 @@ export default function EventCard({
           zIndex: 1
         }}>
           <span style={{ ...badgeBase, backgroundColor: audienceColor, color: "#fff" }}>
-            {isForBoth ? "All Attendees" : isForCoaches ? "For Coaches" : "For Students"}
+            {isForBoth ? "All Attendees" : isForCoaches ? "For Coaches" : isForBoard ? "For Board" : "For Students"}
           </span>
           {isExternal === true && (
             <span style={{

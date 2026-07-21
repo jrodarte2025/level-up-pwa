@@ -31,7 +31,11 @@ function railEventMatchesRole(event, userRole) {
   const isStudent = Array.isArray(groups)
     ? groups.includes("students")
     : groups === "both" || groups === "students";
-  if (userRole === "coach" || userRole === "coach-board" || userRole === "future-coach") return isCoach;
+  const isBoard = Array.isArray(groups)
+    ? groups.includes("board")
+    : groups === "board";
+  if (userRole === "coach-board") return isCoach || isBoard;
+  if (userRole === "coach" || userRole === "future-coach") return isCoach;
   if (userRole === "student") return isStudent;
   return true;
 }
